@@ -14,8 +14,20 @@
 	
 	let status ;
 	
-	function handleSelect(event: { detail: any; }) {
+	async function handleSelect(event: { detail: any; }) {
+        console.log("----------in")
 		status = event.detail;
+          await fetch(`${apiBaseUrl}/todo`, {
+            method: "PUT",
+            body: JSON.stringify({
+                status,
+                clickupId: localStorage.getItem("clickupId")
+            }),
+            headers: {
+                "content-type": "application/json",
+                authorization: `Bearer ${accessToken}`,
+            },
+        });
 		console.log(status)
 	}
 	
@@ -33,6 +45,21 @@
         });
         const { todo } = await response.json();
         todos = [todo, ...todos];
+    }
+
+      async function updateTodo(id: number, status: any) {
+        const response = await fetch(`${apiBaseUrl}/todo`, {
+            method: "PUT",
+            body: JSON.stringify({
+                id,
+                status,
+                clickupId: localStorage.getItem("clickupId")
+            }),
+            headers: {
+                "content-type": "application/json",
+                authorization: `Bearer ${accessToken}`,
+            },
+        });
     }
 
     onMount(async () => {
@@ -142,7 +169,7 @@
         <div class="card_body">
             <div class="themed">
             {#if todo.status === "in progress"}
-            <Select  id="food" {items} value={items[1]} on:select={handleSelect} isClearable={false} ></Select>
+            <Select  id="food" {items} value={items[1]} on:select={handleSelect}  on:click={updateTodo(todo.id, "in progress")} isClearable={false} ></Select>
             {:else if todo.status === "open"}
             <Select  id="food" {items} value={items[0]} on:select={handleSelect} isClearable={false} ></Select>
             {:else if todo.status === "build available"}
