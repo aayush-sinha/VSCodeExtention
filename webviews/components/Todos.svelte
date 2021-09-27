@@ -168,7 +168,7 @@
         </div>
         <div class="card_body">
             <div class="themed">
-            {#if todo.status === "in progress"}
+             {#if todo.status === "in progress"}
             <Select  id="food" {items} value={items[1]} on:select={handleSelect}  on:click={updateTodo(todo.id, "in progress")} isClearable={false} ></Select>
             {:else if todo.status === "open"}
             <Select  id="food" {items} value={items[0]} on:select={handleSelect} isClearable={false} ></Select>
