@@ -6387,8 +6387,11 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (182:56) 
+    // (191:56) 
     function create_if_block_2$2(ctx) {
+    	let t0_value = (/*items*/ ctx[3] = list(/*todo*/ ctx[14].id)) + "";
+    	let t0;
+    	let t1;
     	let select;
     	let current;
 
@@ -6406,13 +6409,19 @@ var app = (function () {
 
     	const block = {
     		c: function create() {
+    			t0 = text(t0_value);
+    			t1 = space();
     			create_component(select.$$.fragment);
     		},
     		m: function mount(target, anchor) {
+    			insert_dev(target, t0, anchor);
+    			insert_dev(target, t1, anchor);
     			mount_component(select, target, anchor);
     			current = true;
     		},
-    		p: noop,
+    		p: function update(ctx, dirty) {
+    			if ((!current || dirty & /*todos*/ 4) && t0_value !== (t0_value = (/*items*/ ctx[3] = list(/*todo*/ ctx[14].id)) + "")) set_data_dev(t0, t0_value);
+    		},
     		i: function intro(local) {
     			if (current) return;
     			transition_in(select.$$.fragment, local);
@@ -6423,6 +6432,8 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
+    			if (detaching) detach_dev(t0);
+    			if (detaching) detach_dev(t1);
     			destroy_component(select, detaching);
     		}
     	};
@@ -6431,15 +6442,18 @@ var app = (function () {
     		block,
     		id: create_if_block_2$2.name,
     		type: "if",
-    		source: "(182:56) ",
+    		source: "(191:56) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (180:45) 
+    // (188:45) 
     function create_if_block_1$2(ctx) {
+    	let t0_value = (/*items*/ ctx[3] = list(/*todo*/ ctx[14].id)) + "";
+    	let t0;
+    	let t1;
     	let select;
     	let current;
 
@@ -6457,13 +6471,19 @@ var app = (function () {
 
     	const block = {
     		c: function create() {
+    			t0 = text(t0_value);
+    			t1 = space();
     			create_component(select.$$.fragment);
     		},
     		m: function mount(target, anchor) {
+    			insert_dev(target, t0, anchor);
+    			insert_dev(target, t1, anchor);
     			mount_component(select, target, anchor);
     			current = true;
     		},
-    		p: noop,
+    		p: function update(ctx, dirty) {
+    			if ((!current || dirty & /*todos*/ 4) && t0_value !== (t0_value = (/*items*/ ctx[3] = list(/*todo*/ ctx[14].id)) + "")) set_data_dev(t0, t0_value);
+    		},
     		i: function intro(local) {
     			if (current) return;
     			transition_in(select.$$.fragment, local);
@@ -6474,6 +6494,8 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
+    			if (detaching) detach_dev(t0);
+    			if (detaching) detach_dev(t1);
     			destroy_component(select, detaching);
     		}
     	};
@@ -6482,22 +6504,25 @@ var app = (function () {
     		block,
     		id: create_if_block_1$2.name,
     		type: "if",
-    		source: "(180:45) ",
+    		source: "(188:45) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (178:13) {#if todo.status === "in progress"}
+    // (185:13) {#if todo.status === "in progress"}
     function create_if_block$3(ctx) {
+    	let t0_value = (/*items*/ ctx[3] = list(/*todo*/ ctx[14].id)) + "";
+    	let t0;
+    	let t1;
     	let select;
     	let current;
 
     	select = new Select({
     			props: {
-    				id: "food",
     				items: /*items*/ ctx[3],
+    				id: "food",
     				value: /*items*/ ctx[3][1],
     				isClearable: false
     			},
@@ -6506,20 +6531,20 @@ var app = (function () {
 
     	select.$on("select", /*handleSelect*/ ctx[4]);
 
-    	select.$on("click", function () {
-    		if (is_function(/*updateTodo*/ ctx[6](/*todo*/ ctx[14].id, "in progress"))) /*updateTodo*/ ctx[6](/*todo*/ ctx[14].id, "in progress").apply(this, arguments);
-    	});
-
     	const block = {
     		c: function create() {
+    			t0 = text(t0_value);
+    			t1 = space();
     			create_component(select.$$.fragment);
     		},
     		m: function mount(target, anchor) {
+    			insert_dev(target, t0, anchor);
+    			insert_dev(target, t1, anchor);
     			mount_component(select, target, anchor);
     			current = true;
     		},
-    		p: function update(new_ctx, dirty) {
-    			ctx = new_ctx;
+    		p: function update(ctx, dirty) {
+    			if ((!current || dirty & /*todos*/ 4) && t0_value !== (t0_value = (/*items*/ ctx[3] = list(/*todo*/ ctx[14].id)) + "")) set_data_dev(t0, t0_value);
     		},
     		i: function intro(local) {
     			if (current) return;
@@ -6531,6 +6556,8 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
+    			if (detaching) detach_dev(t0);
+    			if (detaching) detach_dev(t1);
     			destroy_component(select, detaching);
     		}
     	};
@@ -6539,14 +6566,14 @@ var app = (function () {
     		block,
     		id: create_if_block$3.name,
     		type: "if",
-    		source: "(178:13) {#if todo.status === \\\"in progress\\\"}",
+    		source: "(185:13) {#if todo.status === \\\"in progress\\\"}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (152:4) {#each todos as todo (todo.id)}
+    // (159:4) {#each todos as todo (todo.id)}
     function create_each_block$4(key_1, ctx) {
     	let div3;
     	let div0;
@@ -6567,7 +6594,7 @@ var app = (function () {
     	let dispose;
 
     	function click_handler_1() {
-    		return /*click_handler_1*/ ctx[11](/*todo*/ ctx[14], /*each_value*/ ctx[15], /*todo_index*/ ctx[16]);
+    		return /*click_handler_1*/ ctx[10](/*todo*/ ctx[14], /*each_value*/ ctx[15], /*todo_index*/ ctx[16]);
     	}
 
     	const if_block_creators = [create_if_block$3, create_if_block_1$2, create_if_block_2$2];
@@ -6601,18 +6628,18 @@ var app = (function () {
     			t3 = space();
     			attr_dev(h4, "class", "svelte-1x3h89u");
     			toggle_class(h4, "complete", /*todo*/ ctx[14].completed);
-    			add_location(h4, file$7, 153, 37, 4438);
+    			add_location(h4, file$7, 160, 37, 4726);
     			if (img.src !== (img_src_value = "https://api.iconify.design/clarity/window-close-line.svg?color=%23ccc")) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
-    			add_location(img, file$7, 170, 13, 5083);
+    			add_location(img, file$7, 177, 13, 5371);
     			attr_dev(div0, "class", "card_header svelte-1x3h89u");
-    			add_location(div0, file$7, 153, 12, 4413);
+    			add_location(div0, file$7, 160, 12, 4701);
     			attr_dev(div1, "class", "themed svelte-1x3h89u");
-    			add_location(div1, file$7, 176, 12, 5359);
+    			add_location(div1, file$7, 183, 12, 5647);
     			attr_dev(div2, "class", "card_body svelte-1x3h89u");
-    			add_location(div2, file$7, 175, 8, 5323);
+    			add_location(div2, file$7, 182, 8, 5611);
     			attr_dev(div3, "class", "card svelte-1x3h89u");
-    			add_location(div3, file$7, 152, 8, 4382);
+    			add_location(div3, file$7, 159, 8, 4670);
     			this.first = div3;
     		},
     		m: function mount(target, anchor) {
@@ -6710,7 +6737,7 @@ var app = (function () {
     		block,
     		id: create_each_block$4.name,
     		type: "each",
-    		source: "(152:4) {#each todos as todo (todo.id)}",
+    		source: "(159:4) {#each todos as todo (todo.id)}",
     		ctx
     	});
 
@@ -6761,17 +6788,17 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			add_location(div0, file$7, 134, 0, 3969);
+    			add_location(div0, file$7, 141, 0, 4257);
     			attr_dev(input, "placeholder", "ticket id");
-    			add_location(input, file$7, 141, 4, 4127);
+    			add_location(input, file$7, 148, 4, 4415);
     			attr_dev(form, "class", "svelte-1x3h89u");
-    			add_location(form, file$7, 136, 0, 4023);
+    			add_location(form, file$7, 143, 0, 4311);
     			attr_dev(button, "class", "svelte-1x3h89u");
-    			add_location(button, file$7, 143, 4, 4191);
+    			add_location(button, file$7, 150, 4, 4479);
     			attr_dev(div1, "class", "flex_center svelte-1x3h89u");
-    			add_location(div1, file$7, 135, 0, 3997);
+    			add_location(div1, file$7, 142, 0, 4285);
     			attr_dev(div2, "class", "card_container svelte-1x3h89u");
-    			add_location(div2, file$7, 150, 0, 4309);
+    			add_location(div2, file$7, 157, 0, 4597);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -6796,9 +6823,9 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(input, "input", /*input_input_handler*/ ctx[8]),
-    					listen_dev(form, "submit", prevent_default(/*submit_handler*/ ctx[9]), false, true, false),
-    					listen_dev(button, "click", /*click_handler*/ ctx[10], false, false, false)
+    					listen_dev(input, "input", /*input_input_handler*/ ctx[7]),
+    					listen_dev(form, "submit", prevent_default(/*submit_handler*/ ctx[8]), false, true, false),
+    					listen_dev(button, "click", /*click_handler*/ ctx[9], false, false, false)
     				];
 
     				mounted = true;
@@ -6809,7 +6836,7 @@ var app = (function () {
     				set_input_value(input, /*text*/ ctx[1]);
     			}
 
-    			if (dirty & /*items, handleSelect, updateTodo, todos, fetch, apiBaseUrl, JSON, accessToken, console*/ 93) {
+    			if (dirty & /*items, handleSelect, list, todos, fetch, apiBaseUrl, JSON, accessToken, console*/ 29) {
     				const each_value = /*todos*/ ctx[2];
     				validate_each_argument(each_value);
     				group_outros();
@@ -6859,6 +6886,18 @@ var app = (function () {
     	});
 
     	return block;
+    }
+
+    function list(id) {
+    	return [
+    		{ value: "o", label: "Open", id },
+    		{ value: "ip", label: "In Progress", id },
+    		{
+    			value: "ba",
+    			label: "Build Available",
+    			id
+    		}
+    	];
     }
 
     const click_handler_2 = () => {
@@ -6911,7 +6950,7 @@ var app = (function () {
     	let text = "";
     	let todos = [];
 
-    	const items = [
+    	let items = [
     		{ value: "o", label: "Open" },
     		{ value: "ip", label: "In Progress" },
     		{ value: "ba", label: "Build Available" }
@@ -6921,13 +6960,14 @@ var app = (function () {
 
     	function handleSelect(event) {
     		return __awaiter(this, void 0, void 0, function* () {
-    			console.log("----------in");
-    			status = event.detail;
+    			console.log("----------in", event.detail);
+    			console.log("---token---", localStorage.getItem("clickupId"));
 
-    			yield fetch(`${apiBaseUrl}/todo`, {
+    			const response = yield fetch(`${apiBaseUrl}/todo`, {
     				method: "PUT",
     				body: JSON.stringify({
-    					status,
+    					id: event.detail.id,
+    					status: event.detail.label,
     					clickupId: localStorage.getItem("clickupId")
     				}),
     				headers: {
@@ -6935,8 +6975,6 @@ var app = (function () {
     					authorization: `Bearer ${accessToken}`
     				}
     			});
-
-    			console.log(status);
     		});
     	}
 
@@ -7033,7 +7071,7 @@ var app = (function () {
     	};
 
     	$$self.$$set = $$props => {
-    		if ("user" in $$props) $$invalidate(7, user = $$props.user);
+    		if ("user" in $$props) $$invalidate(6, user = $$props.user);
     		if ("accessToken" in $$props) $$invalidate(0, accessToken = $$props.accessToken);
     	};
 
@@ -7045,6 +7083,7 @@ var app = (function () {
     		accessToken,
     		text,
     		todos,
+    		list,
     		items,
     		status,
     		handleSelect,
@@ -7054,10 +7093,11 @@ var app = (function () {
 
     	$$self.$inject_state = $$props => {
     		if ("__awaiter" in $$props) __awaiter = $$props.__awaiter;
-    		if ("user" in $$props) $$invalidate(7, user = $$props.user);
+    		if ("user" in $$props) $$invalidate(6, user = $$props.user);
     		if ("accessToken" in $$props) $$invalidate(0, accessToken = $$props.accessToken);
     		if ("text" in $$props) $$invalidate(1, text = $$props.text);
     		if ("todos" in $$props) $$invalidate(2, todos = $$props.todos);
+    		if ("items" in $$props) $$invalidate(3, items = $$props.items);
     		if ("status" in $$props) status = $$props.status;
     	};
 
@@ -7072,7 +7112,6 @@ var app = (function () {
     		items,
     		handleSelect,
     		addTodo,
-    		updateTodo,
     		user,
     		input_input_handler,
     		submit_handler,
@@ -7084,7 +7123,7 @@ var app = (function () {
     class Todos extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$7, create_fragment$7, safe_not_equal, { user: 7, accessToken: 0 });
+    		init(this, options, instance$7, create_fragment$7, safe_not_equal, { user: 6, accessToken: 0 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -7096,7 +7135,7 @@ var app = (function () {
     		const { ctx } = this.$$;
     		const props = options.props || {};
 
-    		if (/*user*/ ctx[7] === undefined && !("user" in props)) {
+    		if (/*user*/ ctx[6] === undefined && !("user" in props)) {
     			console_1$1.warn("<Todos> was created without expected prop 'user'");
     		}
 

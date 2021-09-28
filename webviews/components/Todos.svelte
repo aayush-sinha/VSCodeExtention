@@ -6,7 +6,15 @@
     export let accessToken: string;
     let text = "";
     let todos: Array<{ text: string; completed: boolean; id: number; status: string }> = [];
-	const items = [
+    function list(id: number){
+        return [
+	{value: 'o', label: 'Open' , id},
+    {value: 'ip', label: 'In Progress' , id},
+    {value: 'ba', label: 'Build Available', id},
+	]
+    }
+    
+	let items = [
 	{value: 'o', label: 'Open'},
     {value: 'ip', label: 'In Progress'},
     {value: 'ba', label: 'Build Available'},
@@ -15,12 +23,13 @@
 	let status ;
 	
 	async function handleSelect(event: { detail: any; }) {
-        console.log("----------in")
-		status = event.detail;
-          await fetch(`${apiBaseUrl}/todo`, {
+        console.log("----------in", event.detail)
+        console.log('---token---',localStorage.getItem("clickupId"))
+        const response = await fetch(`${apiBaseUrl}/todo`, {
             method: "PUT",
             body: JSON.stringify({
-                status,
+                id: event.detail.id ,
+                status: event.detail.label,
                 clickupId: localStorage.getItem("clickupId")
             }),
             headers: {
@@ -28,7 +37,7 @@
                 authorization: `Bearer ${accessToken}`,
             },
         });
-		console.log(status)
+	
 	}
 	
     async function addTodo(t: string) {
@@ -169,11 +178,14 @@
         <div class="card_body">
             <div class="themed">
              {#if todo.status === "in progress"}
-            <Select  id="food" {items} value={items[1]} on:select={handleSelect}  on:click={updateTodo(todo.id, "in progress")} isClearable={false} ></Select>
+             {items = list(todo.id)}
+            <Select {items} id="food"  value={items[1]} on:select={handleSelect}   isClearable={false} ></Select>
             {:else if todo.status === "open"}
-            <Select  id="food" {items} value={items[0]} on:select={handleSelect} isClearable={false} ></Select>
+            {items = list(todo.id)}
+            <Select  id="food" {items} value={items[0]} on:select={handleSelect}  isClearable={false} ></Select>
             {:else if todo.status === "build available"}
-            <Select  id="food" {items} value={items[2]} on:select={handleSelect} isClearable={false} ></Select>
+            {items = list(todo.id)}
+            <Select  id="food" {items} value={items[2]} on:select={handleSelect}  isClearable={false} ></Select>
             {/if}
             
         </div>
