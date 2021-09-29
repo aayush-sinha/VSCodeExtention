@@ -36,6 +36,12 @@
           "name": "VSTodo",
           "icon": "media/checklist.svg",
           "contextualTitle": "VSTodo"
+        },
+        {
+          "id": "testView",
+          "name": "All Tickets",
+          "icon": "",
+          "contextualTitle": "All Tickets"
         }
       ]
     },
@@ -63,8 +69,48 @@
         "command": "vstodo.authenticate",
         "category": "VSTodo",
         "title": "Authenticate"
+      },
+      {
+        "command": "vstodo.allTicket",
+        "category": "VSTodo",
+        "title": "View all your tickets",
+        "icon": "media/light/search.svg"
+      },
+      {
+        "command": "vstodo.resetTask",
+        "category": "VSTodo",
+        "icon": "media/light/reset.svg",
+        "title": "Reset Tasks"
+      },
+      {
+        "command": "vstodo.logout",
+        "category": "VSTodo",
+        "title": "Logout"
+      },
+      {
+        "command": "vstodo.resetToken",
+        "category": "VSTodo",
+        "title": "Reset ClickUp Token"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "vstodo.resetTask",
+          "group": "navigation"
+        },
+        {
+          "command": "vstodo.allTicket",
+          "group": "navigation"
+        },
+        {
+          "command": "vstodo.logout"
+        },
+        {
+          "command": "vstodo.resetToken"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -106,6 +152,7 @@
     "webpack-cli": "^4.2.0"
   },
   "dependencies": {
+    "axios": "^0.21.4",
     "polka": "^0.5.2",
     "svelte-select": "^4.3.1"
   }

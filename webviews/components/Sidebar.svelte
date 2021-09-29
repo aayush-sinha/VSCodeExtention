@@ -44,7 +44,8 @@
                     });
                     const data = await response.json();
                     user = data.user;
-                    if (user?.clickUpId != null){
+                    // if (user?.clickUpId != null){
+                    if (localStorage.getItem("clickupId")){
                         console.log("page======","todo",user?.clickUpId)
                         page = "todos"
                     } else {
@@ -93,7 +94,7 @@
                 clickupToken = '';
                 }}>Submit</button>
     {/if}
-    <div class="bottom_container">
+    <!-- <div class="bottom_container">
         <button
         on:click={() => {
             accessToken = '';
@@ -108,7 +109,7 @@
          on:click={() => {
              //TODO: Complete this function [Delete all added tast]
          }}>Reset Task</button>
-    </div>
+    </div> -->
     
 {:else}
     <button
