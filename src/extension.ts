@@ -2,9 +2,9 @@ import * as vscode from "vscode";
 import { authenticate } from "./authenticate";
 import { SidebarProvider } from "./SidebarProvider";
 import { TokenManager } from "./TokenManager";
-import {testView} from "./testView"
-import {assigneeView} from "./assigneeView"
-import {openView} from "./openView"
+import { testView } from "./testView";
+import { assigneeView } from "./assigneeView";
+import { openView } from "./openView";
 
 export async function activate(context: vscode.ExtensionContext) {
   TokenManager.globalState = context.globalState;
@@ -77,23 +77,22 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-    vscode.commands.registerCommand("vstodo.refreshTestView",async () => {
-      try {
-        await assigneeView(context);
-        console.log("tr")
-      } catch (err) {
-        console.log(err);
-      }
-    })
-    vscode.commands.registerCommand("vstodo.refreshOpenView",async () => {
-      try {
-        await openView(context);
-        console.log("tr")
-      } catch (err) {
-        console.log(err);
-      }
-    })
-  
+  vscode.commands.registerCommand("vstodo.refreshTestView", async () => {
+    try {
+      await assigneeView(context);
+      console.log("tr");
+    } catch (err) {
+      console.log(err);
+    }
+  });
+  vscode.commands.registerCommand("vstodo.refreshOpenView", async () => {
+    try {
+      await openView(context);
+      console.log("tr");
+    } catch (err) {
+      console.log(err);
+    }
+  });
 
   context.subscriptions.push(
     vscode.commands.registerCommand("vstodo.refresh", async () => {
@@ -127,12 +126,8 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
   await testView(context);
-	await assigneeView(context);
-	await openView(context);
-
-
-  
+  await assigneeView(context);
+  await openView(context);
 }
 
 export function deactivate() {}
-
