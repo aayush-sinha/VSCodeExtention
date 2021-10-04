@@ -16,21 +16,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.hashmap = exports.clickUpDtata = exports.deactivate = exports.activate = void 0;
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+exports.deactivate = exports.activate = void 0;
 const vscode = __webpack_require__(1);
 const SidebarProvider_1 = __webpack_require__(2);
 const TokenManager_1 = __webpack_require__(12);
-const axios_1 = __webpack_require__(14);
 const testView_1 = __webpack_require__(61);
 const assigneeView_1 = __webpack_require__(63);
 const openView_1 = __webpack_require__(64);
-const general_1 = __webpack_require__(62);
-let clickUpDtata = 1;
-exports.clickUpDtata = clickUpDtata;
-let hashmap = {};
-exports.hashmap = hashmap;
 function activate(context) {
     return __awaiter(this, void 0, void 0, function* () {
         TokenManager_1.TokenManager.globalState = context.globalState;
@@ -79,7 +71,7 @@ function activate(context) {
         }));
         vscode.commands.registerCommand("vstodo.refreshTestView", () => __awaiter(this, void 0, void 0, function* () {
             try {
-                yield assigneeView(context);
+                yield assigneeView_1.assigneeView(context);
                 console.log("tr");
             }
             catch (err) {
@@ -88,7 +80,7 @@ function activate(context) {
         }));
         vscode.commands.registerCommand("vstodo.refreshOpenView", () => __awaiter(this, void 0, void 0, function* () {
             try {
-                yield openView(context);
+                yield openView_1.openView(context);
                 console.log("tr");
             }
             catch (err) {
@@ -115,159 +107,12 @@ function activate(context) {
                 console.log({ answer });
             }
         })));
-        yield testView(context);
+        yield testView_1.testView(context);
+        yield assigneeView_1.assigneeView(context);
+        yield openView_1.openView(context);
     });
 }
 exports.activate = activate;
-//*************************************************************************
-//****************************Tree View************************************
-//*************************************************************************
-function list_to_tree(list) {
-    var map = {}, node, roots = [], i;
-    for (i = 0; i < list.length; i += 1) {
-        map[list[i].id] = i; // initialize the map
-        list[i].children = []; // initialize the children
-        //   console.log(map)
-    }
-    console.log(map);
-    for (i = 0; i < list.length; i += 1) {
-        node = list[i];
-        if (node.parent_id !== "0") {
-            // if you have dangling branches check that map[node.parentId] exists
-            list[map[node.parent_id]].children.push(node);
-        }
-        else {
-            roots.push(node);
-        }
-    }
-    return roots;
-}
-const testView = (context) => __awaiter(void 0, void 0, void 0, function* () {
-    const teamDataApi = () => __awaiter(void 0, void 0, void 0, function* () {
-        let teamData = yield axios_1.default.get(`https://api.clickup.com/api/v2/team`, {
-            headers: { Authorization: my_key },
-        });
-        return teamData.data.teams;
-    });
-    let my_key;
-    my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7";
-    // my_key = "pk_3572904_UWHNW545JL1I14QV10OXTW3IUF8RHI25"
-    const spaceDataApi = (id) => __awaiter(void 0, void 0, void 0, function* () {
-        let spaceData = yield axios_1.default.get(`https://api.clickup.com/api/v2/team/${id}/space?archived=false`, {
-            headers: {
-                Authorization: my_key,
-            },
-        });
-        return spaceData.data.spaces;
-    });
-    const listDataApi = (id) => __awaiter(void 0, void 0, void 0, function* () {
-        let listData = yield axios_1.default.get(`https://api.clickup.com/api/v2/space/${id}/list?archived=false`, {
-            headers: {
-                Authorization: my_key,
-            },
-        });
-        return listData.data.lists;
-    });
-    const teamData = yield teamDataApi();
-    teamData.forEach((element) => {
-        element.parent_id = "0";
-    });
-    const spaceData = new Array();
-    const listData = new Array();
-    yield Promise.all(teamData.map((el) => __awaiter(void 0, void 0, void 0, function* () {
-        const res = yield spaceDataApi(el.id);
-        yield Promise.all(res.map((element) => __awaiter(void 0, void 0, void 0, function* () {
-            element.parent_id = el.id;
-            spaceData.push(element);
-            const resList = yield listDataApi(element.id);
-            resList.map((listItem) => {
-                listItem.parent_id = element.id;
-                listData.push(listItem);
-            });
-        })));
-    })));
-    //   console.log("teamDataApi", teamData);
-    //   console.log("spaceDataApi", spaceData);
-    //   console.log("listDataApi", listData);
-    console.log("--------", [...teamData, ...spaceData, ...listData].length);
-    const allArray = [...teamData, ...spaceData, ...listData];
-    exports.clickUpDtata = clickUpDtata = list_to_tree(allArray);
-    allArray.forEach((el) => {
-        hashmap[el.id] = [];
-    });
-    Object.keys(hashmap).forEach((key) => {
-        allArray.forEach((el) => {
-            if (el.parent_id === key)
-                hashmap[key].push(`${el.name}-${el.id}`);
-        });
-    });
-    new testView_1.TestView(context);
-    yield assigneeView(context);
-});
-const assigneeView = (context) => __awaiter(void 0, void 0, void 0, function* () {
-    const listValue = TokenManager_1.TokenManager.getSelectedValue();
-    const listId = general_1.getIdFromKey(listValue);
-    console.log("LISTID", listId);
-    const assigneeDataApi = (listId) => __awaiter(void 0, void 0, void 0, function* () {
-        let assigneeData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/member`, {
-            headers: { Authorization: "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7" },
-        });
-        return assigneeData.data.members;
-    });
-    const assigneeData = yield assigneeDataApi(listId);
-    assigneeData.forEach((element) => {
-        element.parent_id = "0";
-    });
-    console.log("XOLO", assigneeData);
-    const allArray = assigneeData;
-    exports.clickUpDtata = clickUpDtata = list_to_tree(allArray);
-    allArray.forEach((el) => {
-        hashmap[el.id] = [];
-    });
-    Object.keys(hashmap).forEach((key) => {
-        allArray.forEach((el) => {
-            if (el.parent_id === key)
-                hashmap[key].push(`${el.username}-${el.id}`);
-        });
-    });
-    const a = new assigneeView_1.AssigneeView(context);
-    a.refresh();
-    yield openView(context);
-});
-const openView = (context) => __awaiter(void 0, void 0, void 0, function* () {
-    const listValue = TokenManager_1.TokenManager.getSelectedValue();
-    const listId = general_1.getIdFromKey(listValue);
-    const assigneeValue = TokenManager_1.TokenManager.getAssigneeValue();
-    const assigneeId = general_1.getIdFromKey(assigneeValue);
-    console.log("ooooooooassigneeId", assigneeValue);
-    console.log("LISTID", listId);
-    const openDataApi = (listId) => __awaiter(void 0, void 0, void 0, function* () {
-        let openData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=open&assignees[]=${assigneeId}&subtasks=false`, {
-            headers: { Authorization: "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7" },
-        });
-        return openData.data.tasks;
-    });
-    const openData = yield openDataApi(listId);
-    console.log("oooooooo", openData);
-    openData.forEach((element) => {
-        element.parent_id = "0";
-    });
-    console.log("XOLO", openData);
-    const allArray = openData;
-    exports.clickUpDtata = clickUpDtata = list_to_tree(allArray);
-    allArray.forEach((el) => {
-        hashmap[el.id] = [];
-    });
-    Object.keys(hashmap).forEach((key) => {
-        allArray.forEach((el) => {
-            if (el.parent_id === key)
-                hashmap[key].push(`${el.name}-${el.id}`);
-        });
-    });
-    const ov = new openView_1.OpenView(context);
-    ov.refresh();
-});
-// this method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;
 
@@ -4907,24 +4752,95 @@ module.exports = function isAxiosError(payload) {
 
 /***/ }),
 /* 61 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TestView = void 0;
+exports.TestView = exports.testView = void 0;
 const vscode = __webpack_require__(1);
-const extension_1 = __webpack_require__(0);
+// import { clickUpDtata, hashmap } from './extension';
 const TokenManager_1 = __webpack_require__(12);
-// import CustomLocalStorage from './storageHelper';
-// const customLocalStorage = CustomLocalStorage.getInstance();
-// customLocalStorage.setSelectedValue('aayushsinha9');
-// const selectedValue = customLocalStorage.getSelectedValue();
+const general_1 = __webpack_require__(62);
+const axios_1 = __webpack_require__(14);
+let testViewClickUpData;
+let testViewhashmap = {};
+const testView = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    const teamDataApi = () => __awaiter(void 0, void 0, void 0, function* () {
+        let teamData = yield axios_1.default.get(`https://api.clickup.com/api/v2/team`, {
+            headers: { Authorization: my_key },
+        });
+        return teamData.data.teams;
+    });
+    let my_key;
+    my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7";
+    // my_key = "pk_3572904_UWHNW545JL1I14QV10OXTW3IUF8RHI25"
+    const spaceDataApi = (id) => __awaiter(void 0, void 0, void 0, function* () {
+        let spaceData = yield axios_1.default.get(`https://api.clickup.com/api/v2/team/${id}/space?archived=false`, {
+            headers: {
+                Authorization: my_key,
+            },
+        });
+        return spaceData.data.spaces;
+    });
+    const listDataApi = (id) => __awaiter(void 0, void 0, void 0, function* () {
+        let listData = yield axios_1.default.get(`https://api.clickup.com/api/v2/space/${id}/list?archived=false`, {
+            headers: {
+                Authorization: my_key,
+            },
+        });
+        return listData.data.lists;
+    });
+    const teamData = yield teamDataApi();
+    teamData.forEach((element) => {
+        element.parent_id = "0";
+    });
+    const spaceData = new Array();
+    const listData = new Array();
+    yield Promise.all(teamData.map((el) => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield spaceDataApi(el.id);
+        yield Promise.all(res.map((element) => __awaiter(void 0, void 0, void 0, function* () {
+            element.parent_id = el.id;
+            spaceData.push(element);
+            const resList = yield listDataApi(element.id);
+            resList.map((listItem) => {
+                listItem.parent_id = element.id;
+                listData.push(listItem);
+            });
+        })));
+    })));
+    //   console.log("teamDataApi", teamData);
+    //   console.log("spaceDataApi", spaceData);
+    //   console.log("listDataApi", listData);
+    console.log("--------", [...teamData, ...spaceData, ...listData].length);
+    const allArray = [...teamData, ...spaceData, ...listData];
+    testViewClickUpData = general_1.list_to_tree(allArray);
+    allArray.forEach((el) => {
+        testViewhashmap[el.id] = [];
+    });
+    Object.keys(testViewhashmap).forEach((key) => {
+        allArray.forEach((el) => {
+            if (el.parent_id === key)
+                testViewhashmap[key].push(`${el.name}-${el.id}`);
+        });
+    });
+    new TestView(context);
+    // return [testViewClickUpData, testViewhashmap]
+});
+exports.testView = testView;
 class TestView {
     constructor(context) {
         this._onDidChangeTreeData = new vscode.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-        console.log('aayush', extension_1.hashmap, extension_1.clickUpDtata);
         const view = vscode.window.createTreeView('testView', {
             treeDataProvider: aNodeWithIdTreeDataProvider(),
             showCollapseAll: true,
@@ -4959,26 +4875,26 @@ function getChildren(key) {
     console.log('getChildren-key', key);
     let rootArray = new Array();
     if (!key) {
-        extension_1.clickUpDtata.forEach((el) => {
+        testViewClickUpData.forEach((el) => {
             rootArray.push(`${el.name}-${el.id}`);
         });
         return rootArray;
     }
     console.log('qwertyuio', key);
     const id = key.slice(key.lastIndexOf('-') + 1);
-    if (extension_1.hashmap[id].length) {
-        return extension_1.hashmap[id];
+    if (testViewhashmap[id].length) {
+        return testViewhashmap[id];
     }
     return [];
 }
 function getTreeItem(key) {
     const id = key.slice(key.lastIndexOf('-') + 1);
     const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
-    if (extension_1.hashmap[id].length) {
+    if (testViewhashmap[id].length) {
         return {
             label: { label: key.slice(0, key.lastIndexOf('-')) },
             tooltip,
-            collapsibleState: extension_1.hashmap[id].length
+            collapsibleState: testViewhashmap[id].length
                 ? vscode.TreeItemCollapsibleState.Collapsed
                 : vscode.TreeItemCollapsibleState.None,
         };
@@ -4987,7 +4903,7 @@ function getTreeItem(key) {
         return {
             label: { label: key.slice(0, key.lastIndexOf('-')) },
             tooltip,
-            collapsibleState: extension_1.hashmap[id].length
+            collapsibleState: testViewhashmap[id].length
                 ? vscode.TreeItemCollapsibleState.Collapsed
                 : vscode.TreeItemCollapsibleState.None,
             command: {
@@ -5020,7 +4936,7 @@ class Key {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getLabelFromKey = exports.getIdFromKey = void 0;
+exports.list_to_tree = exports.getLabelFromKey = exports.getIdFromKey = void 0;
 const getIdFromKey = (key) => {
     return key.slice(key.lastIndexOf('-') + 1);
 };
@@ -5029,30 +4945,90 @@ const getLabelFromKey = (key) => {
     return key.slice(0, key.lastIndexOf('-'));
 };
 exports.getLabelFromKey = getLabelFromKey;
+function list_to_tree(list) {
+    var map = {}, node, roots = [], i;
+    for (i = 0; i < list.length; i += 1) {
+        map[list[i].id] = i; // initialize the map
+        list[i].children = []; // initialize the children
+        //   console.log(map)
+    }
+    console.log(map);
+    for (i = 0; i < list.length; i += 1) {
+        node = list[i];
+        if (node.parent_id !== "0") {
+            // if you have dangling branches check that map[node.parentId] exists
+            list[map[node.parent_id]].children.push(node);
+        }
+        else {
+            roots.push(node);
+        }
+    }
+    return roots;
+}
+exports.list_to_tree = list_to_tree;
 
 
 /***/ }),
 /* 63 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AssigneeView = void 0;
+exports.AssigneeView = exports.assigneeView = void 0;
 const vscode = __webpack_require__(1);
-const extension_1 = __webpack_require__(0);
+// import { clickUpDtata, hashmap } from './extension';
 const TokenManager_1 = __webpack_require__(12);
 const path = __webpack_require__(65);
 const general_1 = __webpack_require__(62);
-// import CustomLocalStorage from './storageHelper';
-// const customLocalStorage = CustomLocalStorage.getInstance();
-// customLocalStorage.setSelectedValue('aayushsinha9');
-// const selectedValue = customLocalStorage.getSelectedValue();
+const general_2 = __webpack_require__(62);
+const axios_1 = __webpack_require__(14);
+let clickUpData;
+let hashmap = {};
+const assigneeView = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    const listValue = TokenManager_1.TokenManager.getSelectedValue();
+    const listId = general_2.getIdFromKey(listValue);
+    console.log("LISTID", listId);
+    const assigneeDataApi = (listId) => __awaiter(void 0, void 0, void 0, function* () {
+        let assigneeData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/member`, {
+            headers: { Authorization: "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7" },
+        });
+        return assigneeData.data.members;
+    });
+    const assigneeData = yield assigneeDataApi(listId);
+    assigneeData.forEach((element) => {
+        element.parent_id = "0";
+    });
+    console.log("XOLO", assigneeData);
+    const allArray = assigneeData;
+    clickUpData = general_2.list_to_tree(allArray);
+    allArray.forEach((el) => {
+        hashmap[el.id] = [];
+    });
+    Object.keys(hashmap).forEach((key) => {
+        allArray.forEach((el) => {
+            if (el.parent_id === key)
+                hashmap[key].push(`${el.username}-${el.id}`);
+        });
+    });
+    const a = new AssigneeView(context);
+    a.refresh();
+});
+exports.assigneeView = assigneeView;
 class AssigneeView {
     constructor(context) {
         this._onDidChangeTreeData = new vscode.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-        console.log('aayush', extension_1.hashmap, extension_1.clickUpDtata);
+        console.log('aayush', hashmap, clickUpData);
         const view = vscode.window.createTreeView('assigneeView', {
             treeDataProvider: aNodeWithIdTreeDataProvider(),
             showCollapseAll: true,
@@ -5088,26 +5064,26 @@ function getChildren(key) {
     console.log('getChildren-key', key);
     let rootArray = new Array();
     if (!key) {
-        extension_1.clickUpDtata.forEach((el) => {
+        clickUpData.forEach((el) => {
             rootArray.push(`${el.username}-${el.id}`);
         });
         return rootArray;
     }
     console.log('qwertyuio', key);
     const id = key.slice(key.lastIndexOf('-') + 1);
-    if (extension_1.hashmap[id].length) {
-        return extension_1.hashmap[id];
+    if (hashmap[id].length) {
+        return hashmap[id];
     }
     return [];
 }
 function getTreeItem(key) {
     const id = key.slice(key.lastIndexOf('-') + 1);
     const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
-    if (extension_1.hashmap[id].length) {
+    if (hashmap[id].length) {
         return {
             label: { label: key.slice(0, key.lastIndexOf('-')) },
             tooltip,
-            collapsibleState: extension_1.hashmap[id].length
+            collapsibleState: hashmap[id].length
                 ? vscode.TreeItemCollapsibleState.Collapsed
                 : vscode.TreeItemCollapsibleState.None,
         };
@@ -5116,7 +5092,7 @@ function getTreeItem(key) {
         return {
             label: { label: key.slice(0, key.lastIndexOf('-')) },
             tooltip,
-            collapsibleState: extension_1.hashmap[id].length
+            collapsibleState: hashmap[id].length
                 ? vscode.TreeItemCollapsibleState.Collapsed
                 : vscode.TreeItemCollapsibleState.None,
             command: {
@@ -5148,24 +5124,67 @@ class Key {
 
 /***/ }),
 /* 64 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.OpenView = void 0;
+exports.OpenView = exports.openView = void 0;
 const vscode = __webpack_require__(1);
-const extension_1 = __webpack_require__(0);
+const TokenManager_1 = __webpack_require__(12);
 const path = __webpack_require__(65);
-// import CustomLocalStorage from './storageHelper';
-// const customLocalStorage = CustomLocalStorage.getInstance();
-// customLocalStorage.setSelectedValue('aayushsinha9');
-// const selectedValue = customLocalStorage.getSelectedValue();
+const general_1 = __webpack_require__(62);
+const axios_1 = __webpack_require__(14);
+let clickUpData;
+let hashmap = {};
+const openView = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    const listValue = TokenManager_1.TokenManager.getSelectedValue();
+    const listId = general_1.getIdFromKey(listValue);
+    const assigneeValue = TokenManager_1.TokenManager.getAssigneeValue();
+    const assigneeId = general_1.getIdFromKey(assigneeValue);
+    console.log("ooooooooassigneeId", assigneeValue);
+    console.log("LISTID", listId);
+    const openDataApi = (listId) => __awaiter(void 0, void 0, void 0, function* () {
+        let openData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=open&assignees[]=${assigneeId}&subtasks=false`, {
+            headers: { Authorization: "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7" },
+        });
+        return openData.data.tasks;
+    });
+    const openData = yield openDataApi(listId);
+    console.log("oooooooo", openData);
+    openData.forEach((element) => {
+        element.parent_id = "0";
+    });
+    console.log("XOLO", openData);
+    const allArray = openData;
+    clickUpData = general_1.list_to_tree(allArray);
+    allArray.forEach((el) => {
+        hashmap[el.id] = [];
+    });
+    Object.keys(hashmap).forEach((key) => {
+        allArray.forEach((el) => {
+            if (el.parent_id === key)
+                hashmap[key].push(`${el.name}-${el.id}`);
+        });
+    });
+    const ov = new OpenView(context);
+    ov.refresh();
+});
+exports.openView = openView;
 class OpenView {
     constructor(context) {
         this._onDidChangeTreeData = new vscode.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-        console.log('aayush', extension_1.hashmap, extension_1.clickUpDtata);
+        console.log('aayush', hashmap, clickUpData);
         const view = vscode.window.createTreeView('openView', {
             treeDataProvider: aNodeWithIdTreeDataProvider(),
             showCollapseAll: true,
@@ -5201,26 +5220,26 @@ function getChildren(key) {
     console.log('getChildren-key', key);
     let rootArray = new Array();
     if (!key) {
-        extension_1.clickUpDtata.forEach((el) => {
+        clickUpData.forEach((el) => {
             rootArray.push(`${el.name}-${el.id}`);
         });
         return rootArray;
     }
     console.log('qwertyuio', key);
     const id = key.slice(key.lastIndexOf('-') + 1);
-    if (extension_1.hashmap[id].length) {
-        return extension_1.hashmap[id];
+    if (hashmap[id].length) {
+        return hashmap[id];
     }
     return [];
 }
 function getTreeItem(key) {
     const id = key.slice(key.lastIndexOf('-') + 1);
     const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
-    if (extension_1.hashmap[id].length) {
+    if (hashmap[id].length) {
         return {
             label: { label: key.slice(0, key.lastIndexOf('-')) },
             tooltip,
-            collapsibleState: extension_1.hashmap[id].length
+            collapsibleState: hashmap[id].length
                 ? vscode.TreeItemCollapsibleState.Collapsed
                 : vscode.TreeItemCollapsibleState.None,
         };
@@ -5229,7 +5248,7 @@ function getTreeItem(key) {
         return {
             label: { label: key.slice(0, key.lastIndexOf('-')) },
             tooltip,
-            collapsibleState: extension_1.hashmap[id].length
+            collapsibleState: hashmap[id].length
                 ? vscode.TreeItemCollapsibleState.Collapsed
                 : vscode.TreeItemCollapsibleState.None,
             // command: {

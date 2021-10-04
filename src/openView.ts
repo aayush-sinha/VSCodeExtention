@@ -1,17 +1,53 @@
 import * as vscode from 'vscode';
-import { clickUpDtata, hashmap } from './extension';
 import { TokenManager } from "./TokenManager";
 import * as path from 'path';
-// import CustomLocalStorage from './storageHelper';
-// const customLocalStorage = CustomLocalStorage.getInstance();
+import { getLabelFromKey } from "./utils/general";
+import { getIdFromKey, list_to_tree } from "./utils/general";
+import axios, { AxiosResponse } from "axios";
+let clickUpData;
+let hashmap = {};
 
-// customLocalStorage.setSelectedValue('aayushsinha9');
-// const selectedValue = customLocalStorage.getSelectedValue();
+export const openView = async (context) => {
+    const listValue = TokenManager.getSelectedValue();
+    const listId = getIdFromKey(listValue);
+    const assigneeValue = TokenManager.getAssigneeValue();
+    const assigneeId = getIdFromKey(assigneeValue);
+    console.log("ooooooooassigneeId",assigneeValue)
+  
+    console.log("LISTID", listId);
+    const openDataApi = async (listId) => {
+      let openData = await axios.get(`https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=open&assignees[]=${assigneeId}&subtasks=false`, {
+        headers: { Authorization: "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7" },
+      });
+      return openData.data.tasks;
+    };
+    const openData = await openDataApi(listId);
+    console.log("oooooooo",openData)
+    openData.forEach((element) => {
+      element.parent_id = "0";
+    });
+    console.log("XOLO",openData)
+    const allArray = openData;
+    clickUpData = list_to_tree(allArray);
+  
+    allArray.forEach((el) => {
+      hashmap[el.id] = [];
+    });
+    Object.keys(hashmap).forEach((key) => {
+      allArray.forEach((el) => {
+        if (el.parent_id === key) hashmap[key].push(`${el.name}-${el.id}`);
+      });
+    });
+  
+    const ov = new OpenView(context);
+    ov.refresh()
+    
+  }
 export class OpenView {
 	private _onDidChangeTreeData: vscode.EventEmitter<Key | undefined | void> = new vscode.EventEmitter<Key | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<Key | undefined | void> = this._onDidChangeTreeData.event;
 	constructor(context: vscode.ExtensionContext) {
-		console.log('aayush', hashmap, clickUpDtata);
+		console.log('aayush', hashmap, clickUpData);
 		const view = vscode.window.createTreeView('openView', {
 			treeDataProvider: aNodeWithIdTreeDataProvider(),
 			showCollapseAll: true,
@@ -51,7 +87,7 @@ function getChildren(key: string): string[] {
 	console.log('getChildren-key', key);
 	let rootArray = new Array();
 	if (!key) {
-		clickUpDtata.forEach((el) => {
+		clickUpData.forEach((el) => {
 			rootArray.push(`${el.name}-${el.id}`);
 		});
 		return rootArray;
