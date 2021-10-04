@@ -1,25 +1,29 @@
 import * as vscode from 'vscode';
 import { clickUpDtata, hashmap } from './extension';
 import { TokenManager } from "./TokenManager";
+import * as path from 'path';
+import { getLabelFromKey } from "./utils/general";
+
 // import CustomLocalStorage from './storageHelper';
 // const customLocalStorage = CustomLocalStorage.getInstance();
 
 // customLocalStorage.setSelectedValue('aayushsinha9');
 // const selectedValue = customLocalStorage.getSelectedValue();
-export class TestView {
+export class AssigneeView {
 	private _onDidChangeTreeData: vscode.EventEmitter<Key | undefined | void> = new vscode.EventEmitter<Key | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<Key | undefined | void> = this._onDidChangeTreeData.event;
 	constructor(context: vscode.ExtensionContext) {
 		console.log('aayush', hashmap, clickUpDtata);
-		const view = vscode.window.createTreeView('testView', {
+		const view = vscode.window.createTreeView('assigneeView', {
 			treeDataProvider: aNodeWithIdTreeDataProvider(),
 			showCollapseAll: true,
 		});
 		context.subscriptions.push(view);
-		vscode.commands.registerCommand('testView.changeTitle',  (name) => {
-				TokenManager.setSelectedValue(name);
-				console.log("CHECKING MOMENTO",TokenManager.getSelectedValue())
-				view.title = name.slice(0, name.lastIndexOf('-'));
+		vscode.commands.registerCommand('assigneeView.changeTitle',  (name) => {
+				TokenManager.setAssigneeValue(name);
+				console.log("CHECKING MOMENTO",TokenManager.getAssigneeValue())
+				vscode.commands.executeCommand("vstodo.refreshOpenView")
+				view.title = "Assignee: " + getLabelFromKey(name);
 			}
 		);
 		
@@ -51,7 +55,7 @@ function getChildren(key: string): string[] {
 	let rootArray = new Array();
 	if (!key) {
 		clickUpDtata.forEach((el) => {
-			rootArray.push(`${el.name}-${el.id}`);
+			rootArray.push(`${el.username}-${el.id}`);
 		});
 		return rootArray;
 	}
@@ -85,9 +89,13 @@ function getTreeItem(key: string): vscode.TreeItem {
 				? vscode.TreeItemCollapsibleState.Collapsed
 				: vscode.TreeItemCollapsibleState.None,
 			command: {
-				command: 'testView.changeTitle',
+				command: 'assigneeView.changeTitle',
 				title: '',
 				arguments: [key]
+			},
+			iconPath : {
+				light: path.join(__filename, '..', '..', 'resources', 'light', 'user.png'),
+				dark: path.join(__filename, '..', '..', 'resources', 'dark', 'user.png')
 			}
 		};
 	}

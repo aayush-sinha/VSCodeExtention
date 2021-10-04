@@ -15,7 +15,10 @@
     "onCommand:vstodo.refresh",
     "onCommand:vstodo.addTodo",
     "onCommand:vstodo.authenticate",
-    "onView:vstodo-sidebar"
+    "onCommand:vstodo.refreshTestView",
+    "onCommand:vstodo.refreshOpenView",
+    "onView:vstodo-sidebar",
+    "onCommand:testView.refreshEntry"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -42,6 +45,30 @@
           "name": "All Tickets",
           "icon": "",
           "contextualTitle": "All Tickets"
+        },
+        {
+          "id": "assigneeView",
+          "name": "Assignee",
+          "icon": "",
+          "contextualTitle": "Assignee"
+        },
+        {
+          "id": "openView",
+          "name": "Open",
+          "icon": "",
+          "contextualTitle": "Open"
+        },
+        {
+          "id": "ipView",
+          "name": "In Progress",
+          "icon": "",
+          "contextualTitle": "In Progress"
+        },
+        {
+          "id": "baView",
+          "name": "Build Available",
+          "icon": "",
+          "contextualTitle": "Build Available"
         }
       ]
     },
@@ -71,6 +98,18 @@
         "title": "Authenticate"
       },
       {
+        "command": "vstodo.refreshTestView",
+        "category": "VSTodo",
+        "title": "Refresh TestView",
+        "icon": "media/light/reset.svg"
+      },
+      {
+        "command": "vstodo.refreshOpenView",
+        "category": "VSTodo",
+        "title": "Refresh OpenView",
+        "icon": "media/light/reset.svg"
+      },
+      {
         "command": "vstodo.allTicket",
         "category": "VSTodo",
         "title": "View all your tickets",
@@ -91,23 +130,45 @@
         "command": "vstodo.resetToken",
         "category": "VSTodo",
         "title": "Reset ClickUp Token"
-      }
+      },
+      {
+				"command": "testView.changeTitle",
+				"title": "Test View: Change Title"
+			},
+      {
+				"command": "testView.refreshEntry",
+				"title": "Refresh",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
+			}
     ],
     "menus": {
       "view/title": [
         {
           "command": "vstodo.resetTask",
-          "group": "navigation"
+          "group": "navigation",
+					"when": "view == vstodo-sidebar"
+
         },
         {
-          "command": "vstodo.allTicket",
-          "group": "navigation"
+          "command": "vstodo.refreshTestView",
+          "group": "navigation",
+					"when": "view == assigneeView"
         },
         {
-          "command": "vstodo.logout"
+          "command": "vstodo.refreshOpenView",
+          "group": "navigation",
+					"when": "view == openView"
         },
         {
-          "command": "vstodo.resetToken"
+          "command": "vstodo.logout",
+					"when": "view == vstodo-sidebar"
+        },
+        {
+          "command": "testView.refreshEntry",
+					"when": "view == testView"
         }
       ]
     }
@@ -154,6 +215,7 @@
   "dependencies": {
     "axios": "^0.21.4",
     "polka": "^0.5.2",
-    "svelte-select": "^4.3.1"
+    "svelte-select": "^4.3.1",
+    "ts-localstorage": "^1.1.0"
   }
 }

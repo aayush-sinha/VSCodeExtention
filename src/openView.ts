@@ -1,27 +1,28 @@
 import * as vscode from 'vscode';
 import { clickUpDtata, hashmap } from './extension';
 import { TokenManager } from "./TokenManager";
+import * as path from 'path';
 // import CustomLocalStorage from './storageHelper';
 // const customLocalStorage = CustomLocalStorage.getInstance();
 
 // customLocalStorage.setSelectedValue('aayushsinha9');
 // const selectedValue = customLocalStorage.getSelectedValue();
-export class TestView {
+export class OpenView {
 	private _onDidChangeTreeData: vscode.EventEmitter<Key | undefined | void> = new vscode.EventEmitter<Key | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<Key | undefined | void> = this._onDidChangeTreeData.event;
 	constructor(context: vscode.ExtensionContext) {
 		console.log('aayush', hashmap, clickUpDtata);
-		const view = vscode.window.createTreeView('testView', {
+		const view = vscode.window.createTreeView('openView', {
 			treeDataProvider: aNodeWithIdTreeDataProvider(),
 			showCollapseAll: true,
 		});
 		context.subscriptions.push(view);
-		vscode.commands.registerCommand('testView.changeTitle',  (name) => {
-				TokenManager.setSelectedValue(name);
-				console.log("CHECKING MOMENTO",TokenManager.getSelectedValue())
-				view.title = name.slice(0, name.lastIndexOf('-'));
-			}
-		);
+		// vscode.commands.registerCommand('openView.changeTitle',  (name) => {
+		// 		TokenManager.setAssigneeValue(name);
+		// 		console.log("CHECKING MOMENTO",TokenManager.getAssigneeValue())
+		// 		view.title = "Assignee: " + name;
+		// 	}
+		// );
 		
 	}
 	refresh(): void {
@@ -84,11 +85,15 @@ function getTreeItem(key: string): vscode.TreeItem {
 			collapsibleState: hashmap[id].length
 				? vscode.TreeItemCollapsibleState.Collapsed
 				: vscode.TreeItemCollapsibleState.None,
-			command: {
-				command: 'testView.changeTitle',
-				title: '',
-				arguments: [key]
-			}
+			// command: {
+			// 	command: 'assigneeView.changeTitle',
+			// 	title: '',
+			// 	arguments: [key.slice(0, key.lastIndexOf('-'))]
+			// }
+            iconPath : {
+                light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
+                dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
+            }
 		};
 	}
 	
@@ -105,4 +110,5 @@ function getNode(key: string): { key: string } {
 class Key {
 	constructor(readonly key: string,
 		public readonly command?: vscode.Command) {}
+
 }

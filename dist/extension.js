@@ -16,173 +16,257 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.deactivate = exports.activate = void 0;
+exports.hashmap = exports.clickUpDtata = exports.deactivate = exports.activate = void 0;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = __webpack_require__(1);
-const SidebarProvider_1 = __webpack_require__(12);
-const TokenManager_1 = __webpack_require__(11);
-const testView_1 = __webpack_require__(14);
-const axios_1 = __webpack_require__(15);
+const SidebarProvider_1 = __webpack_require__(2);
+const TokenManager_1 = __webpack_require__(12);
+const axios_1 = __webpack_require__(14);
+const testView_1 = __webpack_require__(61);
+const assigneeView_1 = __webpack_require__(63);
+const openView_1 = __webpack_require__(64);
+const general_1 = __webpack_require__(62);
+let clickUpDtata = 1;
+exports.clickUpDtata = clickUpDtata;
+let hashmap = {};
+exports.hashmap = hashmap;
 function activate(context) {
-    TokenManager_1.TokenManager.globalState = context.globalState;
-    const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri);
-    const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
-    item.text = "$(beaker) Add Todo";
-    item.command = "vstodo.addTodo";
-    item.show();
-    context.subscriptions.push(vscode.window.registerWebviewViewProvider("vstodo-sidebar", sidebarProvider));
-    context.subscriptions.push(vscode.commands.registerCommand("vstodo.addTodo", () => {
-        var _a;
-        const { activeTextEditor } = vscode.window;
-        if (!activeTextEditor) {
-            vscode.window.showInformationMessage("No active text editor");
-            return;
-        }
-        const text = activeTextEditor.document.getText(activeTextEditor.selection);
-        (_a = sidebarProvider._view) === null || _a === void 0 ? void 0 : _a.webview.postMessage({
-            type: "new-todo",
-            value: text,
-        });
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand("vstodo.helloWorld", () => {
-        vscode.window.showInformationMessage("token value is: " + TokenManager_1.TokenManager.getToken());
-        // HelloWorldPanel.createOrShow(context.extensionUri);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand("vstodo.logout", () => {
-        var _a;
-        try {
+    return __awaiter(this, void 0, void 0, function* () {
+        TokenManager_1.TokenManager.globalState = context.globalState;
+        const sidebarProvider = new SidebarProvider_1.SidebarProvider(context.extensionUri);
+        const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+        item.text = "$(beaker) Add Todo";
+        item.command = "vstodo.addTodo";
+        item.show();
+        context.subscriptions.push(vscode.window.registerWebviewViewProvider("vstodo-sidebar", sidebarProvider));
+        context.subscriptions.push(vscode.commands.registerCommand("vstodo.addTodo", () => {
+            var _a;
+            const { activeTextEditor } = vscode.window;
+            if (!activeTextEditor) {
+                vscode.window.showInformationMessage("No active text editor");
+                return;
+            }
+            const text = activeTextEditor.document.getText(activeTextEditor.selection);
             (_a = sidebarProvider._view) === null || _a === void 0 ? void 0 : _a.webview.postMessage({
-                type: "logout",
-                value: "",
+                type: "new-todo",
+                value: text,
             });
-        }
-        catch (e) {
-            console.log(e);
-        }
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand("vstodo.authenticate", () => {
-        try {
-        }
-        catch (err) {
-            console.log(err);
-        }
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand("vstodo.refresh", () => __awaiter(this, void 0, void 0, function* () {
-        // HelloWorldPanel.kill();
-        // HelloWorldPanel.createOrShow(context.extensionUri);
-        yield vscode.commands.executeCommand("workbench.action.closeSidebar");
-        yield vscode.commands.executeCommand("workbench.view.extension.vstodo-sidebar-view");
-        // setTimeout(() => {
-        //   vscode.commands.executeCommand(
-        //     "workbench.action.webview.openDeveloperTools"
-        //   );
-        // }, 500);
-    })));
-    context.subscriptions.push(vscode.commands.registerCommand("vstodo.askQuestion", () => __awaiter(this, void 0, void 0, function* () {
-        const answer = yield vscode.window.showInformationMessage("How was your day?", "good", "bad");
-        if (answer === "bad") {
-            vscode.window.showInformationMessage("Sorry to hear that");
-        }
-        else {
-            console.log({ answer });
-        }
-    })));
-    const main = () => __awaiter(this, void 0, void 0, function* () {
-        const tree = {};
-        const nodes = {};
-        function aNodeWithIdTreeDataProvider() {
-            return {
-                getChildren: (element) => {
-                    return getChildren(element ? element.key : undefined).map(key => getNode(key));
-                },
-                getTreeItem: (element) => {
-                    const treeItem = getTreeItem(element.key);
-                    treeItem.id = element.key;
-                    return treeItem;
-                },
-                getParent: ({ key }) => {
-                    const parentKey = key.substring(0, key.length - 1);
-                    return parentKey ? new Key(parentKey) : void 0;
-                }
-            };
-        }
-        function getChildren(key) {
-            if (!key) {
-                return Object.keys(tree);
-            }
-            const treeElement = getTreeElement(key);
-            if (treeElement) {
-                return Object.keys(treeElement);
-            }
-            return [];
-        }
-        function getTreeItem(key) {
-            const treeElement = getTreeElement(key);
-            // An example of how to use codicons in a MarkdownString in a tree item tooltip.
-            const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
-            return {
-                label: /**vscode.TreeItemLabel**/ { label: key, highlights: key.length > 1 ? [[key.length - 2, key.length - 1]] : void 0 },
-                tooltip,
-                collapsibleState: treeElement && Object.keys(treeElement).length ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
-            };
-        }
-        function getTreeElement(element) {
-            let parent = tree;
-            for (let i = 0; i < element.length; i++) {
-                parent = parent[element.substring(0, i + 1)];
-                if (!parent) {
-                    return null;
-                }
-            }
-            return parent;
-        }
-        function getNode(key) {
-            if (!nodes[key]) {
-                nodes[key] = new Key(key);
-            }
-            return nodes[key];
-        }
-        class Key {
-            constructor(key) {
-                this.key = key;
-            }
-        }
-        const apiGetTeams = () => __awaiter(this, void 0, void 0, function* () {
-            let result = yield axios_1.default.get(`https://api.clickup.com/api/v2/team`, { headers: { 'Authorization': 'pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7' } });
-            return result;
-        });
-        const apiGetSpaces = (team_id) => __awaiter(this, void 0, void 0, function* () {
-            let result = yield axios_1.default.get(`https://api.clickup.com/api/v2/team/${team_id}/space?archived=false`, { headers: { 'Authorization': 'pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7' } });
-            return result;
-        });
-        const teamData = yield apiGetTeams();
-        teamData.data.teams.map((team) => __awaiter(this, void 0, void 0, function* () {
-            tree[`${team.name}`] = {};
-            const spaceData = yield apiGetSpaces(team.id);
-            spaceData.data.spaces.map((space) => __awaiter(this, void 0, void 0, function* () {
-                console.log("-------space---", space);
-                // tree[`${team.name}`][`${space.name}`] = {}
-                let tempSpace = space.name;
-                let spaceObject = { [tempSpace]: {} };
-                Object.assign(tree[team.name], [spaceObject]);
-            }));
         }));
-        console.log("-----------tree----------", tree);
-        const treeObj = new testView_1.TestView(context, aNodeWithIdTreeDataProvider);
+        vscode.commands.registerCommand("extension.openPackageOnNpm", (moduleName) => vscode.commands.executeCommand("vscode.open", vscode.Uri.parse("https://www.google.co.in/")));
+        context.subscriptions.push(vscode.commands.registerCommand("vstodo.helloWorld", () => {
+            vscode.window.showInformationMessage("token value is: " + TokenManager_1.TokenManager.getToken());
+            // HelloWorldPanel.createOrShow(context.extensionUri);
+        }));
+        context.subscriptions.push(vscode.commands.registerCommand("vstodo.logout", () => {
+            var _a;
+            try {
+                (_a = sidebarProvider._view) === null || _a === void 0 ? void 0 : _a.webview.postMessage({
+                    type: "logout",
+                    value: "",
+                });
+            }
+            catch (e) {
+                console.log(e);
+            }
+        }));
+        context.subscriptions.push(vscode.commands.registerCommand("vstodo.authenticate", () => {
+            try {
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }));
+        vscode.commands.registerCommand("vstodo.refreshTestView", () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield assigneeView(context);
+                console.log("tr");
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }));
+        vscode.commands.registerCommand("vstodo.refreshOpenView", () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield openView(context);
+                console.log("tr");
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }));
+        context.subscriptions.push(vscode.commands.registerCommand("vstodo.refresh", () => __awaiter(this, void 0, void 0, function* () {
+            // HelloWorldPanel.kill();
+            // HelloWorldPanel.createOrShow(context.extensionUri);
+            yield vscode.commands.executeCommand("workbench.action.closeSidebar");
+            yield vscode.commands.executeCommand("workbench.view.extension.vstodo-sidebar-view");
+            // setTimeout(() => {
+            //   vscode.commands.executeCommand(
+            //     "workbench.action.webview.openDeveloperTools"
+            //   );
+            // }, 500);
+        })));
+        context.subscriptions.push(vscode.commands.registerCommand("vstodo.askQuestion", () => __awaiter(this, void 0, void 0, function* () {
+            const answer = yield vscode.window.showInformationMessage("How was your day?", "good", "bad");
+            if (answer === "bad") {
+                vscode.window.showInformationMessage("Sorry to hear that");
+            }
+            else {
+                console.log({ answer });
+            }
+        })));
+        yield testView(context);
     });
-    main();
-    // const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
-    // ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
-    // const nodeDependenciesProvider = new DepNodeProvider(rootPath);
-    // vscode.window.registerTreeDataProvider('nodeDependencies', nodeDependenciesProvider);
-    // vscode.commands.registerCommand('nodeDependencies.refreshEntry', () => nodeDependenciesProvider.refresh());
-    // vscode.commands.registerCommand('extension.openPackageOnNpm', moduleName => vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)));
-    // vscode.commands.registerCommand('nodeDependencies.addEntry', () => vscode.window.showInformationMessage(`Successfully called add entry.`));
-    // vscode.commands.registerCommand('nodeDependencies.editEntry', (node: Dependency) => vscode.window.showInformationMessage(`Successfully called edit entry on ${node.label}.`));
-    // vscode.commands.registerCommand('nodeDependencies.deleteEntry', (node: Dependency) => vscode.window.showInformationMessage(`Successfully called delete entry on ${node.label}.`));
 }
 exports.activate = activate;
+//*************************************************************************
+//****************************Tree View************************************
+//*************************************************************************
+function list_to_tree(list) {
+    var map = {}, node, roots = [], i;
+    for (i = 0; i < list.length; i += 1) {
+        map[list[i].id] = i; // initialize the map
+        list[i].children = []; // initialize the children
+        //   console.log(map)
+    }
+    console.log(map);
+    for (i = 0; i < list.length; i += 1) {
+        node = list[i];
+        if (node.parent_id !== "0") {
+            // if you have dangling branches check that map[node.parentId] exists
+            list[map[node.parent_id]].children.push(node);
+        }
+        else {
+            roots.push(node);
+        }
+    }
+    return roots;
+}
+const testView = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    const teamDataApi = () => __awaiter(void 0, void 0, void 0, function* () {
+        let teamData = yield axios_1.default.get(`https://api.clickup.com/api/v2/team`, {
+            headers: { Authorization: my_key },
+        });
+        return teamData.data.teams;
+    });
+    let my_key;
+    my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7";
+    // my_key = "pk_3572904_UWHNW545JL1I14QV10OXTW3IUF8RHI25"
+    const spaceDataApi = (id) => __awaiter(void 0, void 0, void 0, function* () {
+        let spaceData = yield axios_1.default.get(`https://api.clickup.com/api/v2/team/${id}/space?archived=false`, {
+            headers: {
+                Authorization: my_key,
+            },
+        });
+        return spaceData.data.spaces;
+    });
+    const listDataApi = (id) => __awaiter(void 0, void 0, void 0, function* () {
+        let listData = yield axios_1.default.get(`https://api.clickup.com/api/v2/space/${id}/list?archived=false`, {
+            headers: {
+                Authorization: my_key,
+            },
+        });
+        return listData.data.lists;
+    });
+    const teamData = yield teamDataApi();
+    teamData.forEach((element) => {
+        element.parent_id = "0";
+    });
+    const spaceData = new Array();
+    const listData = new Array();
+    yield Promise.all(teamData.map((el) => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield spaceDataApi(el.id);
+        yield Promise.all(res.map((element) => __awaiter(void 0, void 0, void 0, function* () {
+            element.parent_id = el.id;
+            spaceData.push(element);
+            const resList = yield listDataApi(element.id);
+            resList.map((listItem) => {
+                listItem.parent_id = element.id;
+                listData.push(listItem);
+            });
+        })));
+    })));
+    //   console.log("teamDataApi", teamData);
+    //   console.log("spaceDataApi", spaceData);
+    //   console.log("listDataApi", listData);
+    console.log("--------", [...teamData, ...spaceData, ...listData].length);
+    const allArray = [...teamData, ...spaceData, ...listData];
+    exports.clickUpDtata = clickUpDtata = list_to_tree(allArray);
+    allArray.forEach((el) => {
+        hashmap[el.id] = [];
+    });
+    Object.keys(hashmap).forEach((key) => {
+        allArray.forEach((el) => {
+            if (el.parent_id === key)
+                hashmap[key].push(`${el.name}-${el.id}`);
+        });
+    });
+    new testView_1.TestView(context);
+    yield assigneeView(context);
+});
+const assigneeView = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    const listValue = TokenManager_1.TokenManager.getSelectedValue();
+    const listId = general_1.getIdFromKey(listValue);
+    console.log("LISTID", listId);
+    const assigneeDataApi = (listId) => __awaiter(void 0, void 0, void 0, function* () {
+        let assigneeData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/member`, {
+            headers: { Authorization: "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7" },
+        });
+        return assigneeData.data.members;
+    });
+    const assigneeData = yield assigneeDataApi(listId);
+    assigneeData.forEach((element) => {
+        element.parent_id = "0";
+    });
+    console.log("XOLO", assigneeData);
+    const allArray = assigneeData;
+    exports.clickUpDtata = clickUpDtata = list_to_tree(allArray);
+    allArray.forEach((el) => {
+        hashmap[el.id] = [];
+    });
+    Object.keys(hashmap).forEach((key) => {
+        allArray.forEach((el) => {
+            if (el.parent_id === key)
+                hashmap[key].push(`${el.username}-${el.id}`);
+        });
+    });
+    const a = new assigneeView_1.AssigneeView(context);
+    a.refresh();
+    yield openView(context);
+});
+const openView = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    const listValue = TokenManager_1.TokenManager.getSelectedValue();
+    const listId = general_1.getIdFromKey(listValue);
+    const assigneeValue = TokenManager_1.TokenManager.getAssigneeValue();
+    const assigneeId = general_1.getIdFromKey(assigneeValue);
+    console.log("ooooooooassigneeId", assigneeValue);
+    console.log("LISTID", listId);
+    const openDataApi = (listId) => __awaiter(void 0, void 0, void 0, function* () {
+        let openData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=open&assignees[]=${assigneeId}&subtasks=false`, {
+            headers: { Authorization: "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7" },
+        });
+        return openData.data.tasks;
+    });
+    const openData = yield openDataApi(listId);
+    console.log("oooooooo", openData);
+    openData.forEach((element) => {
+        element.parent_id = "0";
+    });
+    console.log("XOLO", openData);
+    const allArray = openData;
+    exports.clickUpDtata = clickUpDtata = list_to_tree(allArray);
+    allArray.forEach((el) => {
+        hashmap[el.id] = [];
+    });
+    Object.keys(hashmap).forEach((key) => {
+        allArray.forEach((el) => {
+            if (el.parent_id === key)
+                hashmap[key].push(`${el.name}-${el.id}`);
+        });
+    });
+    const ov = new openView_1.OpenView(context);
+    ov.refresh();
+});
 // this method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;
@@ -211,11 +295,121 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SidebarProvider = void 0;
+const vscode = __webpack_require__(1);
+const authenticate_1 = __webpack_require__(3);
+const constants_1 = __webpack_require__(4);
+const getNonce_1 = __webpack_require__(13);
+const TokenManager_1 = __webpack_require__(12);
+class SidebarProvider {
+    constructor(_extensionUri) {
+        this._extensionUri = _extensionUri;
+    }
+    resolveWebviewView(webviewView) {
+        this._view = webviewView;
+        webviewView.webview.options = {
+            // Allow scripts in the webview
+            enableScripts: true,
+            localResourceRoots: [this._extensionUri],
+        };
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        webviewView.webview.onDidReceiveMessage((data) => __awaiter(this, void 0, void 0, function* () {
+            switch (data.type) {
+                case "logout": {
+                    TokenManager_1.TokenManager.setToken("");
+                    break;
+                }
+                case "authenticate": {
+                    authenticate_1.authenticate(() => {
+                        webviewView.webview.postMessage({
+                            type: "token",
+                            value: TokenManager_1.TokenManager.getToken(),
+                        });
+                    });
+                    break;
+                }
+                case "get-token": {
+                    webviewView.webview.postMessage({
+                        type: "token",
+                        value: TokenManager_1.TokenManager.getToken(),
+                    });
+                    break;
+                }
+                case "onInfo": {
+                    if (!data.value) {
+                        return;
+                    }
+                    vscode.window.showInformationMessage(data.value);
+                    break;
+                }
+                case "onError": {
+                    if (!data.value) {
+                        return;
+                    }
+                    vscode.window.showErrorMessage(data.value);
+                    break;
+                }
+            }
+        }));
+    }
+    revive(panel) {
+        this._view = panel;
+    }
+    _getHtmlForWebview(webview) {
+        const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "reset.css"));
+        const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css"));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out", "compiled/sidebar.js"));
+        const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out", "compiled/sidebar.css"));
+        // Use a nonce to only allow a specific script to be run.
+        const nonce = getNonce_1.getNonce();
+        return `<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="UTF-8">
+				<!--
+					Use a content security policy to only allow loading images from https or from our extension directory,
+					and only allow scripts that have a specific nonce.
+        -->
+        <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<link href="${styleResetUri}" rel="stylesheet">
+				<link href="${styleVSCodeUri}" rel="stylesheet">
+        <link href="${styleMainUri}" rel="stylesheet">
+        <script nonce="${nonce}">
+          const tsvscode = acquireVsCodeApi();
+          const apiBaseUrl = ${JSON.stringify(constants_1.apiBaseUrl)}
+        </script>
+			</head>
+      <body>
+				<script nonce="${nonce}" src="${scriptUri}"></script>
+			</body>
+			</html>`;
+    }
+}
+exports.SidebarProvider = SidebarProvider;
+
+
+/***/ }),
+/* 3 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.authenticate = void 0;
 const vscode = __webpack_require__(1);
-const constants_1 = __webpack_require__(3);
-const polka = __webpack_require__(4);
-const TokenManager_1 = __webpack_require__(11);
+const constants_1 = __webpack_require__(4);
+const polka = __webpack_require__(5);
+const TokenManager_1 = __webpack_require__(12);
 const authenticate = (fn) => {
     const app = polka();
     app.get(`/auth/:token`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -242,7 +436,7 @@ exports.authenticate = authenticate;
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -253,13 +447,13 @@ exports.apiBaseUrl = "http://localhost:3002";
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-const http = __webpack_require__(5);
-const Router = __webpack_require__(6);
-const { parse } = __webpack_require__(9);
-const parser = __webpack_require__(10);
+const http = __webpack_require__(6);
+const Router = __webpack_require__(7);
+const { parse } = __webpack_require__(10);
+const parser = __webpack_require__(11);
 
 function lead(x) {
 	return x.charCodeAt(0) === 47 ? x : ('/' + x);
@@ -361,17 +555,17 @@ module.exports = opts => new Polka(opts);
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("http");;
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-const { exec, match, parse } = __webpack_require__(7);
+const { exec, match, parse } = __webpack_require__(8);
 
 class Trouter {
 	constructor(opts) {
@@ -419,7 +613,7 @@ module.exports = Trouter;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -429,7 +623,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "parse": () => /* binding */ parse,
 /* harmony export */   "exec": () => /* binding */ exec
 /* harmony export */ });
-/* harmony import */ var _arr_every__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _arr_every__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 
 
 
@@ -548,7 +742,7 @@ function exec(str, arr) {
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -570,14 +764,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("querystring");;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ ((module) => {
 
 module.exports = function (req) {
@@ -605,7 +799,7 @@ module.exports = function (req) {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -613,6 +807,8 @@ module.exports = function (req) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TokenManager = void 0;
 const KEY = "vstodotoken";
+const SV = "selectedValue";
+const AssigneeValue = "AssigneeValue";
 class TokenManager {
     static setToken(token) {
         return this.globalState.update(KEY, token);
@@ -620,118 +816,20 @@ class TokenManager {
     static getToken() {
         return this.globalState.get(KEY);
     }
+    static setSelectedValue(sv) {
+        return this.globalState.update(SV, sv);
+    }
+    static getSelectedValue() {
+        return this.globalState.get(SV);
+    }
+    static setAssigneeValue(av) {
+        return this.globalState.update(AssigneeValue, av);
+    }
+    static getAssigneeValue() {
+        return this.globalState.get(AssigneeValue);
+    }
 }
 exports.TokenManager = TokenManager;
-
-
-/***/ }),
-/* 12 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SidebarProvider = void 0;
-const vscode = __webpack_require__(1);
-const authenticate_1 = __webpack_require__(2);
-const constants_1 = __webpack_require__(3);
-const getNonce_1 = __webpack_require__(13);
-const TokenManager_1 = __webpack_require__(11);
-class SidebarProvider {
-    constructor(_extensionUri) {
-        this._extensionUri = _extensionUri;
-    }
-    resolveWebviewView(webviewView) {
-        this._view = webviewView;
-        webviewView.webview.options = {
-            // Allow scripts in the webview
-            enableScripts: true,
-            localResourceRoots: [this._extensionUri],
-        };
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-        webviewView.webview.onDidReceiveMessage((data) => __awaiter(this, void 0, void 0, function* () {
-            switch (data.type) {
-                case "logout": {
-                    TokenManager_1.TokenManager.setToken("");
-                    break;
-                }
-                case "authenticate": {
-                    authenticate_1.authenticate(() => {
-                        webviewView.webview.postMessage({
-                            type: "token",
-                            value: TokenManager_1.TokenManager.getToken(),
-                        });
-                    });
-                    break;
-                }
-                case "get-token": {
-                    webviewView.webview.postMessage({
-                        type: "token",
-                        value: TokenManager_1.TokenManager.getToken(),
-                    });
-                    break;
-                }
-                case "onInfo": {
-                    if (!data.value) {
-                        return;
-                    }
-                    vscode.window.showInformationMessage(data.value);
-                    break;
-                }
-                case "onError": {
-                    if (!data.value) {
-                        return;
-                    }
-                    vscode.window.showErrorMessage(data.value);
-                    break;
-                }
-            }
-        }));
-    }
-    revive(panel) {
-        this._view = panel;
-    }
-    _getHtmlForWebview(webview) {
-        const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "reset.css"));
-        const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css"));
-        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out", "compiled/sidebar.js"));
-        const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "out", "compiled/sidebar.css"));
-        // Use a nonce to only allow a specific script to be run.
-        const nonce = getNonce_1.getNonce();
-        return `<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="UTF-8">
-				<!--
-					Use a content security policy to only allow loading images from https or from our extension directory,
-					and only allow scripts that have a specific nonce.
-        -->
-        <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<link href="${styleResetUri}" rel="stylesheet">
-				<link href="${styleVSCodeUri}" rel="stylesheet">
-        <link href="${styleMainUri}" rel="stylesheet">
-        <script nonce="${nonce}">
-          const tsvscode = acquireVsCodeApi();
-          const apiBaseUrl = ${JSON.stringify(constants_1.apiBaseUrl)}
-        </script>
-			</head>
-      <body>
-				<script nonce="${nonce}" src="${scriptUri}"></script>
-			</body>
-			</html>`;
-    }
-}
-exports.SidebarProvider = SidebarProvider;
 
 
 /***/ }),
@@ -755,62 +853,22 @@ exports.getNonce = getNonce;
 
 /***/ }),
 /* 14 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TestView = void 0;
-const vscode = __webpack_require__(1);
-class TestView {
-    constructor(context, aNodeWithIdTreeDataProvider) {
-        const view = vscode.window.createTreeView('testView', { treeDataProvider: aNodeWithIdTreeDataProvider(), showCollapseAll: true });
-        context.subscriptions.push(view);
-        vscode.commands.registerCommand('testView.reveal', () => __awaiter(this, void 0, void 0, function* () {
-            const key = yield vscode.window.showInputBox({ placeHolder: 'Type the label of the item to reveal' });
-            if (key) {
-                yield view.reveal({ key }, { focus: true, select: false, expand: true });
-            }
-        }));
-        vscode.commands.registerCommand('testView.changeTitle', () => __awaiter(this, void 0, void 0, function* () {
-            const title = yield vscode.window.showInputBox({ prompt: 'Type the new title for the Test View', placeHolder: view.title });
-            if (title) {
-                view.title = title;
-            }
-        }));
-        console.log("------Constructor CALLED---------");
-    }
-}
-exports.TestView = TestView;
-
+module.exports = __webpack_require__(15);
 
 /***/ }),
 /* 15 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-module.exports = __webpack_require__(16);
-
-/***/ }),
-/* 16 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
 "use strict";
 
 
-var utils = __webpack_require__(17);
-var bind = __webpack_require__(18);
-var Axios = __webpack_require__(19);
-var mergeConfig = __webpack_require__(56);
-var defaults = __webpack_require__(24);
+var utils = __webpack_require__(16);
+var bind = __webpack_require__(17);
+var Axios = __webpack_require__(18);
+var mergeConfig = __webpack_require__(55);
+var defaults = __webpack_require__(23);
 
 /**
  * Create an instance of Axios
@@ -843,18 +901,18 @@ axios.create = function create(instanceConfig) {
 };
 
 // Expose Cancel & CancelToken
-axios.Cancel = __webpack_require__(58);
-axios.CancelToken = __webpack_require__(59);
-axios.isCancel = __webpack_require__(55);
+axios.Cancel = __webpack_require__(57);
+axios.CancelToken = __webpack_require__(58);
+axios.isCancel = __webpack_require__(54);
 
 // Expose all/spread
 axios.all = function all(promises) {
   return Promise.all(promises);
 };
-axios.spread = __webpack_require__(60);
+axios.spread = __webpack_require__(59);
 
 // Expose isAxiosError
-axios.isAxiosError = __webpack_require__(61);
+axios.isAxiosError = __webpack_require__(60);
 
 module.exports = axios;
 
@@ -863,13 +921,13 @@ module.exports.default = axios;
 
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var bind = __webpack_require__(18);
+var bind = __webpack_require__(17);
 
 // utils is a library of generic helper functions non-specific to axios
 
@@ -1219,7 +1277,7 @@ module.exports = {
 
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ ((module) => {
 
 "use strict";
@@ -1237,18 +1295,18 @@ module.exports = function bind(fn, thisArg) {
 
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
-var buildURL = __webpack_require__(20);
-var InterceptorManager = __webpack_require__(21);
-var dispatchRequest = __webpack_require__(22);
-var mergeConfig = __webpack_require__(56);
-var validator = __webpack_require__(57);
+var utils = __webpack_require__(16);
+var buildURL = __webpack_require__(19);
+var InterceptorManager = __webpack_require__(20);
+var dispatchRequest = __webpack_require__(21);
+var mergeConfig = __webpack_require__(55);
+var validator = __webpack_require__(56);
 
 var validators = validator.validators;
 /**
@@ -1392,13 +1450,13 @@ module.exports = Axios;
 
 
 /***/ }),
-/* 20 */
+/* 19 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
+var utils = __webpack_require__(16);
 
 function encode(val) {
   return encodeURIComponent(val).
@@ -1469,13 +1527,13 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 21 */
+/* 20 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
+var utils = __webpack_require__(16);
 
 function InterceptorManager() {
   this.handlers = [];
@@ -1530,16 +1588,16 @@ module.exports = InterceptorManager;
 
 
 /***/ }),
-/* 22 */
+/* 21 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
-var transformData = __webpack_require__(23);
-var isCancel = __webpack_require__(55);
-var defaults = __webpack_require__(24);
+var utils = __webpack_require__(16);
+var transformData = __webpack_require__(22);
+var isCancel = __webpack_require__(54);
+var defaults = __webpack_require__(23);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -1619,14 +1677,14 @@ module.exports = function dispatchRequest(config) {
 
 
 /***/ }),
-/* 23 */
+/* 22 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
-var defaults = __webpack_require__(24);
+var utils = __webpack_require__(16);
+var defaults = __webpack_require__(23);
 
 /**
  * Transform the data for a request or a response
@@ -1648,15 +1706,15 @@ module.exports = function transformData(data, headers, fns) {
 
 
 /***/ }),
-/* 24 */
+/* 23 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
-var normalizeHeaderName = __webpack_require__(25);
-var enhanceError = __webpack_require__(26);
+var utils = __webpack_require__(16);
+var normalizeHeaderName = __webpack_require__(24);
+var enhanceError = __webpack_require__(25);
 
 var DEFAULT_CONTENT_TYPE = {
   'Content-Type': 'application/x-www-form-urlencoded'
@@ -1672,10 +1730,10 @@ function getDefaultAdapter() {
   var adapter;
   if (typeof XMLHttpRequest !== 'undefined') {
     // For browsers use XHR adapter
-    adapter = __webpack_require__(27);
+    adapter = __webpack_require__(26);
   } else if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
     // For node use HTTP adapter
-    adapter = __webpack_require__(36);
+    adapter = __webpack_require__(35);
   }
   return adapter;
 }
@@ -1789,13 +1847,13 @@ module.exports = defaults;
 
 
 /***/ }),
-/* 25 */
+/* 24 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
+var utils = __webpack_require__(16);
 
 module.exports = function normalizeHeaderName(headers, normalizedName) {
   utils.forEach(headers, function processHeader(value, name) {
@@ -1808,7 +1866,7 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 26 */
+/* 25 */
 /***/ ((module) => {
 
 "use strict";
@@ -1857,20 +1915,20 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 27 */
+/* 26 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
-var settle = __webpack_require__(28);
-var cookies = __webpack_require__(30);
-var buildURL = __webpack_require__(20);
-var buildFullPath = __webpack_require__(31);
-var parseHeaders = __webpack_require__(34);
-var isURLSameOrigin = __webpack_require__(35);
-var createError = __webpack_require__(29);
+var utils = __webpack_require__(16);
+var settle = __webpack_require__(27);
+var cookies = __webpack_require__(29);
+var buildURL = __webpack_require__(19);
+var buildFullPath = __webpack_require__(30);
+var parseHeaders = __webpack_require__(33);
+var isURLSameOrigin = __webpack_require__(34);
+var createError = __webpack_require__(28);
 
 module.exports = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -2053,13 +2111,13 @@ module.exports = function xhrAdapter(config) {
 
 
 /***/ }),
-/* 28 */
+/* 27 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var createError = __webpack_require__(29);
+var createError = __webpack_require__(28);
 
 /**
  * Resolve or reject a Promise based on response status.
@@ -2085,13 +2143,13 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 29 */
+/* 28 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var enhanceError = __webpack_require__(26);
+var enhanceError = __webpack_require__(25);
 
 /**
  * Create an Error with the specified message, config, error code, request and response.
@@ -2110,13 +2168,13 @@ module.exports = function createError(message, config, code, request, response) 
 
 
 /***/ }),
-/* 30 */
+/* 29 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
+var utils = __webpack_require__(16);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -2170,14 +2228,14 @@ module.exports = (
 
 
 /***/ }),
-/* 31 */
+/* 30 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var isAbsoluteURL = __webpack_require__(32);
-var combineURLs = __webpack_require__(33);
+var isAbsoluteURL = __webpack_require__(31);
+var combineURLs = __webpack_require__(32);
 
 /**
  * Creates a new URL by combining the baseURL with the requestedURL,
@@ -2197,7 +2255,7 @@ module.exports = function buildFullPath(baseURL, requestedURL) {
 
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ ((module) => {
 
 "use strict";
@@ -2218,7 +2276,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ ((module) => {
 
 "use strict";
@@ -2239,13 +2297,13 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
+var utils = __webpack_require__(16);
 
 // Headers whose duplicates are ignored by node
 // c.f. https://nodejs.org/api/http.html#http_message_headers
@@ -2299,13 +2357,13 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
+var utils = __webpack_require__(16);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -2374,25 +2432,25 @@ module.exports = (
 
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
-var settle = __webpack_require__(28);
-var buildFullPath = __webpack_require__(31);
-var buildURL = __webpack_require__(20);
-var http = __webpack_require__(5);
-var https = __webpack_require__(37);
-var httpFollow = __webpack_require__(38).http;
-var httpsFollow = __webpack_require__(38).https;
-var url = __webpack_require__(39);
-var zlib = __webpack_require__(53);
-var pkg = __webpack_require__(54);
-var createError = __webpack_require__(29);
-var enhanceError = __webpack_require__(26);
+var utils = __webpack_require__(16);
+var settle = __webpack_require__(27);
+var buildFullPath = __webpack_require__(30);
+var buildURL = __webpack_require__(19);
+var http = __webpack_require__(6);
+var https = __webpack_require__(36);
+var httpFollow = __webpack_require__(37).http;
+var httpsFollow = __webpack_require__(37).https;
+var url = __webpack_require__(38);
+var zlib = __webpack_require__(52);
+var pkg = __webpack_require__(53);
+var createError = __webpack_require__(28);
+var enhanceError = __webpack_require__(25);
 
 var isHttps = /https:?/;
 
@@ -2712,23 +2770,23 @@ module.exports = function httpAdapter(config) {
 
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("https");;
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var url = __webpack_require__(39);
+var url = __webpack_require__(38);
 var URL = url.URL;
-var http = __webpack_require__(5);
-var https = __webpack_require__(37);
-var Writable = __webpack_require__(40).Writable;
-var assert = __webpack_require__(41);
-var debug = __webpack_require__(42);
+var http = __webpack_require__(6);
+var https = __webpack_require__(36);
+var Writable = __webpack_require__(39).Writable;
+var assert = __webpack_require__(40);
+var debug = __webpack_require__(41);
 
 // Create handlers that pass events from native requests
 var events = ["abort", "aborted", "connect", "error", "socket", "timeout"];
@@ -3263,28 +3321,28 @@ module.exports.wrap = wrap;
 
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("url");;
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("stream");;
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("assert");;
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var debug;
@@ -3293,7 +3351,7 @@ module.exports = function () {
   if (!debug) {
     try {
       /* eslint global-require: off */
-      debug = __webpack_require__(43)("follow-redirects");
+      debug = __webpack_require__(42)("follow-redirects");
     }
     catch (error) { /* */ }
     if (typeof debug !== "function") {
@@ -3305,7 +3363,7 @@ module.exports = function () {
 
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /**
@@ -3314,14 +3372,14 @@ module.exports = function () {
  */
 
 if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
-	module.exports = __webpack_require__(44);
+	module.exports = __webpack_require__(43);
 } else {
-	module.exports = __webpack_require__(47);
+	module.exports = __webpack_require__(46);
 }
 
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /* eslint-env browser */
@@ -3578,7 +3636,7 @@ function localstorage() {
 	}
 }
 
-module.exports = __webpack_require__(45)(exports);
+module.exports = __webpack_require__(44)(exports);
 
 const {formatters} = module.exports;
 
@@ -3596,7 +3654,7 @@ formatters.j = function (v) {
 
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
@@ -3612,7 +3670,7 @@ function setup(env) {
 	createDebug.disable = disable;
 	createDebug.enable = enable;
 	createDebug.enabled = enabled;
-	createDebug.humanize = __webpack_require__(46);
+	createDebug.humanize = __webpack_require__(45);
 	createDebug.destroy = destroy;
 
 	Object.keys(env).forEach(key => {
@@ -3863,7 +3921,7 @@ module.exports = setup;
 
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ ((module) => {
 
 /**
@@ -4031,15 +4089,15 @@ function plural(ms, msAbs, n, name) {
 
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /**
  * Module dependencies.
  */
 
-const tty = __webpack_require__(48);
-const util = __webpack_require__(49);
+const tty = __webpack_require__(47);
+const util = __webpack_require__(48);
 
 /**
  * This is the Node.js implementation of `debug()`.
@@ -4065,7 +4123,7 @@ exports.colors = [6, 2, 3, 4, 5, 1];
 try {
 	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
 	// eslint-disable-next-line import/no-extraneous-dependencies
-	const supportsColor = __webpack_require__(50);
+	const supportsColor = __webpack_require__(49);
 
 	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
 		exports.colors = [
@@ -4273,7 +4331,7 @@ function init(debug) {
 	}
 }
 
-module.exports = __webpack_require__(45)(exports);
+module.exports = __webpack_require__(44)(exports);
 
 const {formatters} = module.exports;
 
@@ -4300,27 +4358,27 @@ formatters.O = function (v) {
 
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("tty");;
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("util");;
 
 /***/ }),
-/* 50 */
+/* 49 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
-const os = __webpack_require__(51);
-const hasFlag = __webpack_require__(52);
+const os = __webpack_require__(50);
+const hasFlag = __webpack_require__(51);
 
 const env = process.env;
 
@@ -4452,14 +4510,14 @@ module.exports = {
 
 
 /***/ }),
-/* 51 */
+/* 50 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("os");;
 
 /***/ }),
-/* 52 */
+/* 51 */
 /***/ ((module) => {
 
 "use strict";
@@ -4474,21 +4532,21 @@ module.exports = (flag, argv) => {
 
 
 /***/ }),
-/* 53 */
+/* 52 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("zlib");;
 
 /***/ }),
-/* 54 */
+/* 53 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = JSON.parse("{\"_from\":\"axios\",\"_id\":\"axios@0.21.4\",\"_inBundle\":false,\"_integrity\":\"sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==\",\"_location\":\"/axios\",\"_phantomChildren\":{},\"_requested\":{\"type\":\"tag\",\"registry\":true,\"raw\":\"axios\",\"name\":\"axios\",\"escapedName\":\"axios\",\"rawSpec\":\"\",\"saveSpec\":null,\"fetchSpec\":\"latest\"},\"_requiredBy\":[\"#USER\",\"/\"],\"_resolved\":\"https://registry.npmjs.org/axios/-/axios-0.21.4.tgz\",\"_shasum\":\"c67b90dc0568e5c1cf2b0b858c43ba28e2eda575\",\"_spec\":\"axios\",\"_where\":\"E:\\\\VSCodeExtention\",\"author\":{\"name\":\"Matt Zabriskie\"},\"browser\":{\"./lib/adapters/http.js\":\"./lib/adapters/xhr.js\"},\"bugs\":{\"url\":\"https://github.com/axios/axios/issues\"},\"bundleDependencies\":false,\"bundlesize\":[{\"path\":\"./dist/axios.min.js\",\"threshold\":\"5kB\"}],\"dependencies\":{\"follow-redirects\":\"^1.14.0\"},\"deprecated\":false,\"description\":\"Promise based HTTP client for the browser and node.js\",\"devDependencies\":{\"coveralls\":\"^3.0.0\",\"es6-promise\":\"^4.2.4\",\"grunt\":\"^1.3.0\",\"grunt-banner\":\"^0.6.0\",\"grunt-cli\":\"^1.2.0\",\"grunt-contrib-clean\":\"^1.1.0\",\"grunt-contrib-watch\":\"^1.0.0\",\"grunt-eslint\":\"^23.0.0\",\"grunt-karma\":\"^4.0.0\",\"grunt-mocha-test\":\"^0.13.3\",\"grunt-ts\":\"^6.0.0-beta.19\",\"grunt-webpack\":\"^4.0.2\",\"istanbul-instrumenter-loader\":\"^1.0.0\",\"jasmine-core\":\"^2.4.1\",\"karma\":\"^6.3.2\",\"karma-chrome-launcher\":\"^3.1.0\",\"karma-firefox-launcher\":\"^2.1.0\",\"karma-jasmine\":\"^1.1.1\",\"karma-jasmine-ajax\":\"^0.1.13\",\"karma-safari-launcher\":\"^1.0.0\",\"karma-sauce-launcher\":\"^4.3.6\",\"karma-sinon\":\"^1.0.5\",\"karma-sourcemap-loader\":\"^0.3.8\",\"karma-webpack\":\"^4.0.2\",\"load-grunt-tasks\":\"^3.5.2\",\"minimist\":\"^1.2.0\",\"mocha\":\"^8.2.1\",\"sinon\":\"^4.5.0\",\"terser-webpack-plugin\":\"^4.2.3\",\"typescript\":\"^4.0.5\",\"url-search-params\":\"^0.10.0\",\"webpack\":\"^4.44.2\",\"webpack-dev-server\":\"^3.11.0\"},\"homepage\":\"https://axios-http.com\",\"jsdelivr\":\"dist/axios.min.js\",\"keywords\":[\"xhr\",\"http\",\"ajax\",\"promise\",\"node\"],\"license\":\"MIT\",\"main\":\"index.js\",\"name\":\"axios\",\"repository\":{\"type\":\"git\",\"url\":\"git+https://github.com/axios/axios.git\"},\"scripts\":{\"build\":\"NODE_ENV=production grunt build\",\"coveralls\":\"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js\",\"examples\":\"node ./examples/server.js\",\"fix\":\"eslint --fix lib/**/*.js\",\"postversion\":\"git push && git push --tags\",\"preversion\":\"npm test\",\"start\":\"node ./sandbox/server.js\",\"test\":\"grunt test\",\"version\":\"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json\"},\"typings\":\"./index.d.ts\",\"unpkg\":\"dist/axios.min.js\",\"version\":\"0.21.4\"}");
 
 /***/ }),
-/* 55 */
+/* 54 */
 /***/ ((module) => {
 
 "use strict";
@@ -4500,13 +4558,13 @@ module.exports = function isCancel(value) {
 
 
 /***/ }),
-/* 56 */
+/* 55 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(17);
+var utils = __webpack_require__(16);
 
 /**
  * Config-specific merge-function which creates a new config-object
@@ -4594,13 +4652,13 @@ module.exports = function mergeConfig(config1, config2) {
 
 
 /***/ }),
-/* 57 */
+/* 56 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var pkg = __webpack_require__(54);
+var pkg = __webpack_require__(53);
 
 var validators = {};
 
@@ -4706,7 +4764,7 @@ module.exports = {
 
 
 /***/ }),
-/* 58 */
+/* 57 */
 /***/ ((module) => {
 
 "use strict";
@@ -4732,13 +4790,13 @@ module.exports = Cancel;
 
 
 /***/ }),
-/* 59 */
+/* 58 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Cancel = __webpack_require__(58);
+var Cancel = __webpack_require__(57);
 
 /**
  * A `CancelToken` is an object that can be used to request cancellation of an operation.
@@ -4796,7 +4854,7 @@ module.exports = CancelToken;
 
 
 /***/ }),
-/* 60 */
+/* 59 */
 /***/ ((module) => {
 
 "use strict";
@@ -4830,7 +4888,7 @@ module.exports = function spread(callback) {
 
 
 /***/ }),
-/* 61 */
+/* 60 */
 /***/ ((module) => {
 
 "use strict";
@@ -4846,6 +4904,367 @@ module.exports = function isAxiosError(payload) {
   return (typeof payload === 'object') && (payload.isAxiosError === true);
 };
 
+
+/***/ }),
+/* 61 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TestView = void 0;
+const vscode = __webpack_require__(1);
+const extension_1 = __webpack_require__(0);
+const TokenManager_1 = __webpack_require__(12);
+// import CustomLocalStorage from './storageHelper';
+// const customLocalStorage = CustomLocalStorage.getInstance();
+// customLocalStorage.setSelectedValue('aayushsinha9');
+// const selectedValue = customLocalStorage.getSelectedValue();
+class TestView {
+    constructor(context) {
+        this._onDidChangeTreeData = new vscode.EventEmitter();
+        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+        console.log('aayush', extension_1.hashmap, extension_1.clickUpDtata);
+        const view = vscode.window.createTreeView('testView', {
+            treeDataProvider: aNodeWithIdTreeDataProvider(),
+            showCollapseAll: true,
+        });
+        context.subscriptions.push(view);
+        vscode.commands.registerCommand('testView.changeTitle', (name) => {
+            TokenManager_1.TokenManager.setSelectedValue(name);
+            console.log("CHECKING MOMENTO", TokenManager_1.TokenManager.getSelectedValue());
+            view.title = name.slice(0, name.lastIndexOf('-'));
+        });
+    }
+    refresh() {
+        this._onDidChangeTreeData.fire();
+    }
+}
+exports.TestView = TestView;
+const nodes = {};
+function aNodeWithIdTreeDataProvider() {
+    return {
+        getChildren: (element) => {
+            return getChildren(element ? element.key : undefined).map((key) => getNode(key));
+        },
+        getTreeItem: (element) => {
+            const treeItem = getTreeItem(element.key);
+            // localStorage.setItem("id", element.key);
+            treeItem.id = element.key;
+            return treeItem;
+        },
+    };
+}
+function getChildren(key) {
+    console.log('getChildren-key', key);
+    let rootArray = new Array();
+    if (!key) {
+        extension_1.clickUpDtata.forEach((el) => {
+            rootArray.push(`${el.name}-${el.id}`);
+        });
+        return rootArray;
+    }
+    console.log('qwertyuio', key);
+    const id = key.slice(key.lastIndexOf('-') + 1);
+    if (extension_1.hashmap[id].length) {
+        return extension_1.hashmap[id];
+    }
+    return [];
+}
+function getTreeItem(key) {
+    const id = key.slice(key.lastIndexOf('-') + 1);
+    const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
+    if (extension_1.hashmap[id].length) {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf('-')) },
+            tooltip,
+            collapsibleState: extension_1.hashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+        };
+    }
+    else {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf('-')) },
+            tooltip,
+            collapsibleState: extension_1.hashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+            command: {
+                command: 'testView.changeTitle',
+                title: '',
+                arguments: [key]
+            }
+        };
+    }
+}
+function getNode(key) {
+    if (!nodes[key]) {
+        nodes[key] = new Key(key);
+    }
+    console.log('getNode-return-key', key);
+    return nodes[key];
+}
+class Key {
+    constructor(key, command) {
+        this.key = key;
+        this.command = command;
+    }
+}
+
+
+/***/ }),
+/* 62 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getLabelFromKey = exports.getIdFromKey = void 0;
+const getIdFromKey = (key) => {
+    return key.slice(key.lastIndexOf('-') + 1);
+};
+exports.getIdFromKey = getIdFromKey;
+const getLabelFromKey = (key) => {
+    return key.slice(0, key.lastIndexOf('-'));
+};
+exports.getLabelFromKey = getLabelFromKey;
+
+
+/***/ }),
+/* 63 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AssigneeView = void 0;
+const vscode = __webpack_require__(1);
+const extension_1 = __webpack_require__(0);
+const TokenManager_1 = __webpack_require__(12);
+const path = __webpack_require__(65);
+const general_1 = __webpack_require__(62);
+// import CustomLocalStorage from './storageHelper';
+// const customLocalStorage = CustomLocalStorage.getInstance();
+// customLocalStorage.setSelectedValue('aayushsinha9');
+// const selectedValue = customLocalStorage.getSelectedValue();
+class AssigneeView {
+    constructor(context) {
+        this._onDidChangeTreeData = new vscode.EventEmitter();
+        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+        console.log('aayush', extension_1.hashmap, extension_1.clickUpDtata);
+        const view = vscode.window.createTreeView('assigneeView', {
+            treeDataProvider: aNodeWithIdTreeDataProvider(),
+            showCollapseAll: true,
+        });
+        context.subscriptions.push(view);
+        vscode.commands.registerCommand('assigneeView.changeTitle', (name) => {
+            TokenManager_1.TokenManager.setAssigneeValue(name);
+            console.log("CHECKING MOMENTO", TokenManager_1.TokenManager.getAssigneeValue());
+            vscode.commands.executeCommand("vstodo.refreshOpenView");
+            view.title = "Assignee: " + general_1.getLabelFromKey(name);
+        });
+    }
+    refresh() {
+        this._onDidChangeTreeData.fire();
+    }
+}
+exports.AssigneeView = AssigneeView;
+const nodes = {};
+function aNodeWithIdTreeDataProvider() {
+    return {
+        getChildren: (element) => {
+            return getChildren(element ? element.key : undefined).map((key) => getNode(key));
+        },
+        getTreeItem: (element) => {
+            const treeItem = getTreeItem(element.key);
+            // localStorage.setItem("id", element.key);
+            treeItem.id = element.key;
+            return treeItem;
+        },
+    };
+}
+function getChildren(key) {
+    console.log('getChildren-key', key);
+    let rootArray = new Array();
+    if (!key) {
+        extension_1.clickUpDtata.forEach((el) => {
+            rootArray.push(`${el.username}-${el.id}`);
+        });
+        return rootArray;
+    }
+    console.log('qwertyuio', key);
+    const id = key.slice(key.lastIndexOf('-') + 1);
+    if (extension_1.hashmap[id].length) {
+        return extension_1.hashmap[id];
+    }
+    return [];
+}
+function getTreeItem(key) {
+    const id = key.slice(key.lastIndexOf('-') + 1);
+    const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
+    if (extension_1.hashmap[id].length) {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf('-')) },
+            tooltip,
+            collapsibleState: extension_1.hashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+        };
+    }
+    else {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf('-')) },
+            tooltip,
+            collapsibleState: extension_1.hashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+            command: {
+                command: 'assigneeView.changeTitle',
+                title: '',
+                arguments: [key]
+            },
+            iconPath: {
+                light: path.join(__filename, '..', '..', 'resources', 'light', 'user.png'),
+                dark: path.join(__filename, '..', '..', 'resources', 'dark', 'user.png')
+            }
+        };
+    }
+}
+function getNode(key) {
+    if (!nodes[key]) {
+        nodes[key] = new Key(key);
+    }
+    console.log('getNode-return-key', key);
+    return nodes[key];
+}
+class Key {
+    constructor(key, command) {
+        this.key = key;
+        this.command = command;
+    }
+}
+
+
+/***/ }),
+/* 64 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.OpenView = void 0;
+const vscode = __webpack_require__(1);
+const extension_1 = __webpack_require__(0);
+const path = __webpack_require__(65);
+// import CustomLocalStorage from './storageHelper';
+// const customLocalStorage = CustomLocalStorage.getInstance();
+// customLocalStorage.setSelectedValue('aayushsinha9');
+// const selectedValue = customLocalStorage.getSelectedValue();
+class OpenView {
+    constructor(context) {
+        this._onDidChangeTreeData = new vscode.EventEmitter();
+        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+        console.log('aayush', extension_1.hashmap, extension_1.clickUpDtata);
+        const view = vscode.window.createTreeView('openView', {
+            treeDataProvider: aNodeWithIdTreeDataProvider(),
+            showCollapseAll: true,
+        });
+        context.subscriptions.push(view);
+        // vscode.commands.registerCommand('openView.changeTitle',  (name) => {
+        // 		TokenManager.setAssigneeValue(name);
+        // 		console.log("CHECKING MOMENTO",TokenManager.getAssigneeValue())
+        // 		view.title = "Assignee: " + name;
+        // 	}
+        // );
+    }
+    refresh() {
+        this._onDidChangeTreeData.fire();
+    }
+}
+exports.OpenView = OpenView;
+const nodes = {};
+function aNodeWithIdTreeDataProvider() {
+    return {
+        getChildren: (element) => {
+            return getChildren(element ? element.key : undefined).map((key) => getNode(key));
+        },
+        getTreeItem: (element) => {
+            const treeItem = getTreeItem(element.key);
+            // localStorage.setItem("id", element.key);
+            treeItem.id = element.key;
+            return treeItem;
+        },
+    };
+}
+function getChildren(key) {
+    console.log('getChildren-key', key);
+    let rootArray = new Array();
+    if (!key) {
+        extension_1.clickUpDtata.forEach((el) => {
+            rootArray.push(`${el.name}-${el.id}`);
+        });
+        return rootArray;
+    }
+    console.log('qwertyuio', key);
+    const id = key.slice(key.lastIndexOf('-') + 1);
+    if (extension_1.hashmap[id].length) {
+        return extension_1.hashmap[id];
+    }
+    return [];
+}
+function getTreeItem(key) {
+    const id = key.slice(key.lastIndexOf('-') + 1);
+    const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
+    if (extension_1.hashmap[id].length) {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf('-')) },
+            tooltip,
+            collapsibleState: extension_1.hashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+        };
+    }
+    else {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf('-')) },
+            tooltip,
+            collapsibleState: extension_1.hashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+            // command: {
+            // 	command: 'assigneeView.changeTitle',
+            // 	title: '',
+            // 	arguments: [key.slice(0, key.lastIndexOf('-'))]
+            // }
+            iconPath: {
+                light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
+                dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
+            }
+        };
+    }
+}
+function getNode(key) {
+    if (!nodes[key]) {
+        nodes[key] = new Key(key);
+    }
+    console.log('getNode-return-key', key);
+    return nodes[key];
+}
+class Key {
+    constructor(key, command) {
+        this.key = key;
+        this.command = command;
+    }
+}
+
+
+/***/ }),
+/* 65 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");;
 
 /***/ })
 /******/ 	]);

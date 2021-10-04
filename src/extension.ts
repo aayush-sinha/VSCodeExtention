@@ -4,12 +4,16 @@ import * as vscode from "vscode";
 import { authenticate } from "./authenticate";
 import { HelloWorldPanel } from "./HelloWorldPanel";
 import { SidebarProvider } from "./SidebarProvider";
-import { DepNodeProvider, Dependency } from './nodeDependencies';
 import { TokenManager } from "./TokenManager";
+import axios, { AxiosResponse } from "axios";
 import { TestView } from "./testView";
-import axios, { AxiosResponse } from 'axios';
+import { AssigneeView } from "./assigneeView";
+import { OpenView } from "./openView";
+import { getIdFromKey } from "./utils/general";
+let clickUpDtata: any = 1;
 
-export function activate(context: vscode.ExtensionContext) {
+let hashmap = {};
+export async function activate(context: vscode.ExtensionContext) {
   TokenManager.globalState = context.globalState;
 
   const sidebarProvider = new SidebarProvider(context.extensionUri);
@@ -44,7 +48,12 @@ export function activate(context: vscode.ExtensionContext) {
       });
     })
   );
-
+  vscode.commands.registerCommand("extension.openPackageOnNpm", (moduleName) =>
+    vscode.commands.executeCommand(
+      "vscode.open",
+      vscode.Uri.parse("https://www.google.co.in/")
+    )
+  );
   context.subscriptions.push(
     vscode.commands.registerCommand("vstodo.helloWorld", () => {
       vscode.window.showInformationMessage(
@@ -55,14 +64,13 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(
     vscode.commands.registerCommand("vstodo.logout", () => {
-      try{
+      try {
         sidebarProvider._view?.webview.postMessage({
           type: "logout",
           value: "",
         });
-      }
-      catch(e){
-        console.log(e)
+      } catch (e) {
+        console.log(e);
       }
     })
   );
@@ -70,12 +78,29 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("vstodo.authenticate", () => {
       try {
-        
       } catch (err) {
         console.log(err);
       }
     })
   );
+
+    vscode.commands.registerCommand("vstodo.refreshTestView",async () => {
+      try {
+        await assigneeView(context);
+        console.log("tr")
+      } catch (err) {
+        console.log(err);
+      }
+    })
+    vscode.commands.registerCommand("vstodo.refreshOpenView",async () => {
+      try {
+        await openView(context);
+        console.log("tr")
+      } catch (err) {
+        console.log(err);
+      }
+    })
+  
 
   context.subscriptions.push(
     vscode.commands.registerCommand("vstodo.refresh", async () => {
@@ -108,114 +133,187 @@ export function activate(context: vscode.ExtensionContext) {
       }
     })
   );
+  await testView(context);
+}
+//*************************************************************************
+//****************************Tree View************************************
+//*************************************************************************
+function list_to_tree(list) {
+  var map = {},
+    node,
+    roots = [],
+    i;
 
-
-
-  const main = async () => {
-
-    const tree = {}
-    const nodes = {};
-    
-    function  aNodeWithIdTreeDataProvider(): vscode.TreeDataProvider<{ key: string }> {
-      return {
-        getChildren: (element: { key: string }): { key: string }[] => {
-          return getChildren(element ? element.key : undefined).map(key => getNode(key));
-        },
-        getTreeItem: (element: { key: string }): vscode.TreeItem => {
-          const treeItem = getTreeItem(element.key);
-          treeItem.id = element.key;
-          return treeItem;
-        },
-        getParent: ({ key }: { key: string }): { key: string } => {
-          const parentKey = key.substring(0, key.length - 1);
-          return parentKey ? new Key(parentKey) : void 0;
-        }
-      };
-    }
-    
-    function getChildren(key: string): string[] {
-      if (!key) {
-        return Object.keys(tree);
-      }
-      const treeElement = getTreeElement(key);
-      if (treeElement) {
-        return Object.keys(treeElement);
-      }
-      return [];
-    }
-    
-    function getTreeItem(key: string): vscode.TreeItem {
-      const treeElement = getTreeElement(key);
-      // An example of how to use codicons in a MarkdownString in a tree item tooltip.
-      const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
-      return {
-        label: /**vscode.TreeItemLabel**/<any>{ label: key, highlights: key.length > 1 ? [[key.length - 2, key.length - 1]] : void 0 },
-        tooltip,
-        collapsibleState: treeElement && Object.keys(treeElement).length ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
-      };
-    }
-    
-    function getTreeElement(element): any {
-      let parent = tree;
-      for (let i = 0; i < element.length; i++) {
-        parent = parent[element.substring(0, i + 1)];
-        if (!parent) {
-          return null;
-        }
-      }
-      return parent;
-    }
-    
-    function getNode(key: string): { key: string } {
-      if (!nodes[key]) {
-        nodes[key] = new Key(key);
-      }
-      return nodes[key];
-    }
-    
-    
-    
-    class Key {
-      constructor(readonly key: string) { }
-    }
-    const apiGetTeams = async () => {
-      let result = await axios.get(`https://api.clickup.com/api/v2/team`,
-      { headers: {'Authorization': 'pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7'}});
-      return result
-    } 
-    const apiGetSpaces = async (team_id) => {
-      let result = await axios.get(`https://api.clickup.com/api/v2/team/${team_id}/space?archived=false`,
-      { headers: {'Authorization': 'pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7'}});
-      return result
-    } 
-    const teamData = await apiGetTeams()
-    teamData.data.teams.map(async (team)=> {
-      tree[`${team.name}`] = {}
-      const spaceData = await apiGetSpaces(team.id)
-      spaceData.data.spaces.map(async(space)=>{
-        console.log("-------space---",space)
-        // tree[`${team.name}`][`${space.name}`] = {}
-        let tempSpace = space.name
-        let spaceObject = {[tempSpace]: {}}
-        Object.assign(tree[team.name],[spaceObject])
-      })
-    })
-    console.log("-----------tree----------",tree);
-    const treeObj = new TestView(context,aNodeWithIdTreeDataProvider); 
+  for (i = 0; i < list.length; i += 1) {
+    map[list[i].id] = i; // initialize the map
+    list[i].children = []; // initialize the children
+    //   console.log(map)
   }
-  main()
+  console.log(map);
+  for (i = 0; i < list.length; i += 1) {
+    node = list[i];
+    if (node.parent_id !== "0") {
+      // if you have dangling branches check that map[node.parentId] exists
+      list[map[node.parent_id]].children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
+}
+const testView = async (context) => {
+  const teamDataApi = async () => {
+    let teamData = await axios.get(`https://api.clickup.com/api/v2/team`, {
+      headers: { Authorization: my_key },
+    });
+    return teamData.data.teams;
+  };
+  let my_key 
+  my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7"
+  // my_key = "pk_3572904_UWHNW545JL1I14QV10OXTW3IUF8RHI25"
+  const spaceDataApi = async (id) => {
+    let spaceData = await axios.get(
+      `https://api.clickup.com/api/v2/team/${id}/space?archived=false`,
+      {
+        headers: {
+          Authorization: my_key,
+        },
+      }
+    );
+    return spaceData.data.spaces;
+  };
+
+  const listDataApi = async (id) => {
+    let listData = await axios.get(
+      `https://api.clickup.com/api/v2/space/${id}/list?archived=false`,
+      {
+        headers: {
+          Authorization: my_key,
+        },
+      }
+    );
+    return listData.data.lists;
+  };
+
+  const teamData = await teamDataApi();
+  teamData.forEach((element) => {
+    element.parent_id = "0";
+  });
+  const spaceData = new Array();
+  const listData = new Array();
+
+  await Promise.all(
+    teamData.map(async (el) => {
+      const res = await spaceDataApi(el.id);
+
+      await Promise.all(
+        res.map(async (element) => {
+          element.parent_id = el.id;
+          spaceData.push(element);
+          const resList = await listDataApi(element.id);
+
+          resList.map((listItem) => {
+            listItem.parent_id = element.id;
+            listData.push(listItem);
+          });
+        })
+      );
+    })
+  );
+
+  //   console.log("teamDataApi", teamData);
+  //   console.log("spaceDataApi", spaceData);
+  //   console.log("listDataApi", listData);
+  console.log("--------", [...teamData, ...spaceData, ...listData].length);
+
   
+  const allArray = [...teamData, ...spaceData, ...listData];
+  clickUpDtata = list_to_tree(allArray);
+
+  allArray.forEach((el) => {
+    hashmap[el.id] = [];
+  });
+  Object.keys(hashmap).forEach((key) => {
+    allArray.forEach((el) => {
+      if (el.parent_id === key) hashmap[key].push(`${el.name}-${el.id}`);
+    });
+  });
+
+  new TestView(context);
   
-  // const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
-  // ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
-  // const nodeDependenciesProvider = new DepNodeProvider(rootPath);
-	// vscode.window.registerTreeDataProvider('nodeDependencies', nodeDependenciesProvider);
-	// vscode.commands.registerCommand('nodeDependencies.refreshEntry', () => nodeDependenciesProvider.refresh());
-	// vscode.commands.registerCommand('extension.openPackageOnNpm', moduleName => vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)));
-	// vscode.commands.registerCommand('nodeDependencies.addEntry', () => vscode.window.showInformationMessage(`Successfully called add entry.`));
-	// vscode.commands.registerCommand('nodeDependencies.editEntry', (node: Dependency) => vscode.window.showInformationMessage(`Successfully called edit entry on ${node.label}.`));
-	// vscode.commands.registerCommand('nodeDependencies.deleteEntry', (node: Dependency) => vscode.window.showInformationMessage(`Successfully called delete entry on ${node.label}.`));
+  await assigneeView(context);
+};
+
+const assigneeView = async (context) => {
+  const listValue = TokenManager.getSelectedValue();
+  const listId = getIdFromKey(listValue);
+  console.log("LISTID", listId);
+  const assigneeDataApi = async (listId) => {
+    let assigneeData = await axios.get(`https://api.clickup.com/api/v2/list/${listId}/member`, {
+      headers: { Authorization: "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7" },
+    });
+    return assigneeData.data.members;
+  };
+  const assigneeData = await assigneeDataApi(listId);
+  assigneeData.forEach((element) => {
+    element.parent_id = "0";
+  });
+  console.log("XOLO",assigneeData)
+  const allArray = assigneeData;
+  clickUpDtata = list_to_tree(allArray);
+
+  allArray.forEach((el) => {
+    hashmap[el.id] = [];
+  });
+  Object.keys(hashmap).forEach((key) => {
+    allArray.forEach((el) => {
+      if (el.parent_id === key) hashmap[key].push(`${el.username}-${el.id}`);
+    });
+  });
+
+  const a = new AssigneeView(context);
+  a.refresh()
+  
+  await openView(context);
 }
 
+const openView = async (context) => {
+  const listValue = TokenManager.getSelectedValue();
+  const listId = getIdFromKey(listValue);
+  const assigneeValue = TokenManager.getAssigneeValue();
+  const assigneeId = getIdFromKey(assigneeValue);
+  console.log("ooooooooassigneeId",assigneeValue)
+
+  console.log("LISTID", listId);
+  const openDataApi = async (listId) => {
+    let openData = await axios.get(`https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=open&assignees[]=${assigneeId}&subtasks=false`, {
+      headers: { Authorization: "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7" },
+    });
+    return openData.data.tasks;
+  };
+  const openData = await openDataApi(listId);
+  console.log("oooooooo",openData)
+  openData.forEach((element) => {
+    element.parent_id = "0";
+  });
+  console.log("XOLO",openData)
+  const allArray = openData;
+  clickUpDtata = list_to_tree(allArray);
+
+  allArray.forEach((el) => {
+    hashmap[el.id] = [];
+  });
+  Object.keys(hashmap).forEach((key) => {
+    allArray.forEach((el) => {
+      if (el.parent_id === key) hashmap[key].push(`${el.name}-${el.id}`);
+    });
+  });
+
+  const ov = new OpenView(context);
+  ov.refresh()
+  
+}
 // this method is called when your extension is deactivated
 export function deactivate() {}
+export { clickUpDtata };
+export { hashmap };
