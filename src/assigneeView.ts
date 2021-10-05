@@ -129,7 +129,7 @@ function getTreeItem(key: string): vscode.TreeItem {
           "..",
           "resources",
           "light",
-          "user.png"
+          "account.svg"
         ),
         dark: path.join(
           __filename,
@@ -137,7 +137,7 @@ function getTreeItem(key: string): vscode.TreeItem {
           "..",
           "resources",
           "dark",
-          "user.png"
+          "account.svg"
         ),
       },
     };

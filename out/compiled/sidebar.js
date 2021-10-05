@@ -6387,7 +6387,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (191:56) 
+    // (192:56) 
     function create_if_block_2$2(ctx) {
     	let t0_value = (/*items*/ ctx[3] = list(/*todo*/ ctx[14].id)) + "";
     	let t0;
@@ -6442,14 +6442,14 @@ var app = (function () {
     		block,
     		id: create_if_block_2$2.name,
     		type: "if",
-    		source: "(191:56) ",
+    		source: "(192:56) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (188:45) 
+    // (189:45) 
     function create_if_block_1$2(ctx) {
     	let t0_value = (/*items*/ ctx[3] = list(/*todo*/ ctx[14].id)) + "";
     	let t0;
@@ -6504,14 +6504,14 @@ var app = (function () {
     		block,
     		id: create_if_block_1$2.name,
     		type: "if",
-    		source: "(188:45) ",
+    		source: "(189:45) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (185:13) {#if todo.status === "in progress"}
+    // (186:13) {#if todo.status === "in progress"}
     function create_if_block$3(ctx) {
     	let t0_value = (/*items*/ ctx[3] = list(/*todo*/ ctx[14].id)) + "";
     	let t0;
@@ -6566,14 +6566,14 @@ var app = (function () {
     		block,
     		id: create_if_block$3.name,
     		type: "if",
-    		source: "(185:13) {#if todo.status === \\\"in progress\\\"}",
+    		source: "(186:13) {#if todo.status === \\\"in progress\\\"}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (159:4) {#each todos as todo (todo.id)}
+    // (160:4) {#each todos as todo (todo.id)}
     function create_each_block$4(key_1, ctx) {
     	let div3;
     	let div0;
@@ -6628,18 +6628,18 @@ var app = (function () {
     			t3 = space();
     			attr_dev(h4, "class", "svelte-1x3h89u");
     			toggle_class(h4, "complete", /*todo*/ ctx[14].completed);
-    			add_location(h4, file$7, 160, 37, 4886);
+    			add_location(h4, file$7, 161, 37, 4927);
     			if (img.src !== (img_src_value = "https://api.iconify.design/clarity/window-close-line.svg?color=%23ccc")) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
-    			add_location(img, file$7, 177, 13, 5548);
+    			add_location(img, file$7, 178, 13, 5589);
     			attr_dev(div0, "class", "card_header svelte-1x3h89u");
-    			add_location(div0, file$7, 160, 12, 4861);
+    			add_location(div0, file$7, 161, 12, 4902);
     			attr_dev(div1, "class", "themed svelte-1x3h89u");
-    			add_location(div1, file$7, 183, 12, 5830);
+    			add_location(div1, file$7, 184, 12, 5871);
     			attr_dev(div2, "class", "card_body svelte-1x3h89u");
-    			add_location(div2, file$7, 182, 8, 5793);
+    			add_location(div2, file$7, 183, 8, 5834);
     			attr_dev(div3, "class", "card svelte-1x3h89u");
-    			add_location(div3, file$7, 159, 8, 4829);
+    			add_location(div3, file$7, 160, 8, 4870);
     			this.first = div3;
     		},
     		m: function mount(target, anchor) {
@@ -6737,7 +6737,7 @@ var app = (function () {
     		block,
     		id: create_each_block$4.name,
     		type: "each",
-    		source: "(159:4) {#each todos as todo (todo.id)}",
+    		source: "(160:4) {#each todos as todo (todo.id)}",
     		ctx
     	});
 
@@ -6788,17 +6788,17 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			add_location(div0, file$7, 141, 0, 4398);
+    			add_location(div0, file$7, 142, 0, 4439);
     			attr_dev(input, "placeholder", "ticket id");
-    			add_location(input, file$7, 148, 4, 4563);
+    			add_location(input, file$7, 149, 4, 4604);
     			attr_dev(form, "class", "svelte-1x3h89u");
-    			add_location(form, file$7, 143, 0, 4454);
+    			add_location(form, file$7, 144, 0, 4495);
     			attr_dev(button, "class", "svelte-1x3h89u");
-    			add_location(button, file$7, 150, 4, 4629);
+    			add_location(button, file$7, 151, 4, 4670);
     			attr_dev(div1, "class", "flex_center svelte-1x3h89u");
-    			add_location(div1, file$7, 142, 0, 4427);
+    			add_location(div1, file$7, 143, 0, 4468);
     			attr_dev(div2, "class", "card_container svelte-1x3h89u");
-    			add_location(div2, file$7, 157, 0, 4754);
+    			add_location(div2, file$7, 158, 0, 4795);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -6980,6 +6980,8 @@ var app = (function () {
 
     	function addTodo(t) {
     		return __awaiter(this, void 0, void 0, function* () {
+    			console.log("add-todo called");
+
     			const response = yield fetch(`${apiBaseUrl}/todo`, {
     				method: "POST",
     				body: JSON.stringify({

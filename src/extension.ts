@@ -23,23 +23,32 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("vstodo.addTodo", () => {
-      const { activeTextEditor } = vscode.window;
+	vscode.commands.registerCommand('vstodo.addTodo', (node) => {
+    vscode.window.showInformationMessage(`Ticket added to Todo list.`)
+    sidebarProvider._view?.webview.postMessage({
+          type: "new-todo",
+          value: node.key,
+        });
+  })
 
-      if (!activeTextEditor) {
-        vscode.window.showInformationMessage("No active text editor");
-        return;
-      }
+    // vscode.commands.registerCommand("vstodo.addTodo", (ticketName) => {
+    //   const { activeTextEditor } = vscode.window;
 
-      const text = activeTextEditor.document.getText(
-        activeTextEditor.selection
-      );
+    //   if (!activeTextEditor) {
+    //     vscode.window.showInformationMessage("No active text editor");
+    //     return;
+    //   }
 
-      sidebarProvider._view?.webview.postMessage({
-        type: "new-todo",
-        value: text,
-      });
-    })
+    //   // const text = activeTextEditor.document.getText(
+    //   //   activeTextEditor.selection
+    //   // );
+    //   const text = ticketName
+
+    //   sidebarProvider._view?.webview.postMessage({
+    //     type: "new-todo",
+    //     value: text,
+    //   });
+    // })
   );
   vscode.commands.registerCommand("extension.openPackageOnNpm", (moduleName) =>
     vscode.commands.executeCommand(

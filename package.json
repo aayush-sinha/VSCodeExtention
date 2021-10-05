@@ -90,7 +90,8 @@
       {
         "command": "vstodo.addTodo",
         "category": "VSTodo",
-        "title": "Add Todo From Selection"
+        "title": "Add Todo From Selection",
+        "icon": "resources/dark/add.svg"
       },
       {
         "command": "vstodo.authenticate",
@@ -169,6 +170,13 @@
         {
           "command": "testView.refreshEntry",
 					"when": "view == testView"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "vstodo.addTodo",
+          "when": "view == openView",
+          "group": "inline"
         }
       ]
     }

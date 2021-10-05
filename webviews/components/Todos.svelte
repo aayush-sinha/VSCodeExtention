@@ -41,6 +41,7 @@
 	}
 	
     async function addTodo(t: string) {
+        console.log("add-todo called")
         const response = await fetch(`${apiBaseUrl}/todo`, {
             method: "POST",
             body: JSON.stringify({

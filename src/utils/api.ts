@@ -50,7 +50,7 @@ export const assigneeDataApi = async (authKey, listId) => {
 // Returnns Tickets list
 export const openDataApi = async (authKey, listId, assigneeId) => {
     let openData = await axios.get(
-      `https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=open&assignees[]=${assigneeId}&subtasks=false`,
+      `https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=open&assignees[]=${assigneeId}&subtasks=true`,
       {
         headers: {
           Authorization: authKey,
