@@ -20,9 +20,11 @@ exports.deactivate = exports.activate = void 0;
 const vscode = __webpack_require__(1);
 const SidebarProvider_1 = __webpack_require__(2);
 const TokenManager_1 = __webpack_require__(12);
-const testView_1 = __webpack_require__(14);
-const assigneeView_1 = __webpack_require__(64);
-const openView_1 = __webpack_require__(66);
+const testView_1 = __webpack_require__(61);
+const assigneeView_1 = __webpack_require__(62);
+const openView_1 = __webpack_require__(65);
+const inProgressView_1 = __webpack_require__(67);
+const buildAvailableView_1 = __webpack_require__(68);
 function activate(context) {
     return __awaiter(this, void 0, void 0, function* () {
         TokenManager_1.TokenManager.globalState = context.globalState;
@@ -98,6 +100,24 @@ function activate(context) {
                 console.log(err);
             }
         }));
+        vscode.commands.registerCommand("vstodo.refreshIpView", () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield inProgressView_1.ipView(context);
+                console.log("tr");
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }));
+        vscode.commands.registerCommand("vstodo.refreshBaView", () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield buildAvailableView_1.baView(context);
+                console.log("tr");
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }));
         context.subscriptions.push(vscode.commands.registerCommand("vstodo.refresh", () => __awaiter(this, void 0, void 0, function* () {
             // HelloWorldPanel.kill();
             // HelloWorldPanel.createOrShow(context.extensionUri);
@@ -121,6 +141,8 @@ function activate(context) {
         yield testView_1.testView(context);
         yield assigneeView_1.assigneeView(context);
         yield openView_1.openView(context);
+        yield inProgressView_1.ipView(context);
+        yield buildAvailableView_1.baView(context);
     });
 }
 exports.activate = activate;
@@ -709,279 +731,22 @@ exports.getNonce = getNonce;
 
 /***/ }),
 /* 14 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TestView = exports.testView = void 0;
-const vscode = __webpack_require__(1);
-// import { clickUpDtata, hashmap } from './extension';
-const TokenManager_1 = __webpack_require__(12);
-const general_1 = __webpack_require__(15);
-const api_1 = __webpack_require__(16);
-let testViewClickUpData;
-let testViewhashmap = {};
-let my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7";
-const testView = (context) => __awaiter(void 0, void 0, void 0, function* () {
-    const teamData = yield api_1.teamDataApi(my_key);
-    teamData.forEach((element) => {
-        element.parent_id = "0";
-    });
-    const spaceData = new Array();
-    const listData = new Array();
-    yield Promise.all(teamData.map((el) => __awaiter(void 0, void 0, void 0, function* () {
-        const res = yield api_1.spaceDataApi(my_key, el.id);
-        yield Promise.all(res.map((element) => __awaiter(void 0, void 0, void 0, function* () {
-            element.parent_id = el.id;
-            spaceData.push(element);
-            const resList = yield api_1.listDataApi(my_key, element.id);
-            resList.map((listItem) => {
-                listItem.parent_id = element.id;
-                listData.push(listItem);
-            });
-        })));
-    })));
-    const allArray = [...teamData, ...spaceData, ...listData];
-    testViewClickUpData = general_1.list_to_tree(allArray);
-    allArray.forEach((el) => {
-        testViewhashmap[el.id] = [];
-    });
-    Object.keys(testViewhashmap).forEach((key) => {
-        allArray.forEach((el) => {
-            if (el.parent_id === key)
-                testViewhashmap[key].push(`${el.name}-${el.id}`);
-        });
-    });
-    new TestView(context);
-});
-exports.testView = testView;
-class TestView {
-    constructor(context) {
-        this._onDidChangeTreeData = new vscode.EventEmitter();
-        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-        const view = vscode.window.createTreeView("testView", {
-            treeDataProvider: aNodeWithIdTreeDataProvider(),
-            showCollapseAll: true,
-        });
-        context.subscriptions.push(view);
-        vscode.commands.registerCommand("testView.changeTitle", (name) => {
-            TokenManager_1.TokenManager.setSelectedValue(name);
-            console.log("CHECKING MOMENTO", TokenManager_1.TokenManager.getSelectedValue());
-            view.title = name.slice(0, name.lastIndexOf("-"));
-        });
-    }
-    refresh() {
-        this._onDidChangeTreeData.fire();
-    }
-}
-exports.TestView = TestView;
-const nodes = {};
-function aNodeWithIdTreeDataProvider() {
-    return {
-        getChildren: (element) => {
-            return getChildren(element ? element.key : undefined).map((key) => getNode(key));
-        },
-        getTreeItem: (element) => {
-            const treeItem = getTreeItem(element.key);
-            // localStorage.setItem("id", element.key);
-            treeItem.id = element.key;
-            return treeItem;
-        },
-    };
-}
-function getChildren(key) {
-    console.log("getChildren-key", key);
-    let rootArray = new Array();
-    if (!key) {
-        testViewClickUpData.forEach((el) => {
-            rootArray.push(`${el.name}-${el.id}`);
-        });
-        return rootArray;
-    }
-    console.log("qwertyuio", key);
-    const id = key.slice(key.lastIndexOf("-") + 1);
-    if (testViewhashmap[id].length) {
-        return testViewhashmap[id];
-    }
-    return [];
-}
-function getTreeItem(key) {
-    const id = key.slice(key.lastIndexOf("-") + 1);
-    const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
-    if (testViewhashmap[id].length) {
-        return {
-            label: { label: key.slice(0, key.lastIndexOf("-")) },
-            tooltip,
-            collapsibleState: testViewhashmap[id].length
-                ? vscode.TreeItemCollapsibleState.Collapsed
-                : vscode.TreeItemCollapsibleState.None,
-        };
-    }
-    else {
-        return {
-            label: { label: key.slice(0, key.lastIndexOf("-")) },
-            tooltip,
-            collapsibleState: testViewhashmap[id].length
-                ? vscode.TreeItemCollapsibleState.Collapsed
-                : vscode.TreeItemCollapsibleState.None,
-            command: {
-                command: "testView.changeTitle",
-                title: "",
-                arguments: [key],
-            },
-        };
-    }
-}
-function getNode(key) {
-    if (!nodes[key]) {
-        nodes[key] = new Key(key);
-    }
-    console.log("getNode-return-key", key);
-    return nodes[key];
-}
-class Key {
-    constructor(key, command) {
-        this.key = key;
-        this.command = command;
-    }
-}
-
+module.exports = __webpack_require__(15);
 
 /***/ }),
 /* 15 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.list_to_tree = exports.getLabelFromKey = exports.getIdFromKey = void 0;
-const getIdFromKey = (key) => {
-    return key.slice(key.lastIndexOf('-') + 1);
-};
-exports.getIdFromKey = getIdFromKey;
-const getLabelFromKey = (key) => {
-    return key.slice(0, key.lastIndexOf('-'));
-};
-exports.getLabelFromKey = getLabelFromKey;
-function list_to_tree(list) {
-    var map = {}, node, roots = [], i;
-    for (i = 0; i < list.length; i += 1) {
-        map[list[i].id] = i; // initialize the map
-        list[i].children = []; // initialize the children
-        //   console.log(map)
-    }
-    console.log(map);
-    for (i = 0; i < list.length; i += 1) {
-        node = list[i];
-        if (node.parent_id !== "0") {
-            // if you have dangling branches check that map[node.parentId] exists
-            list[map[node.parent_id]].children.push(node);
-        }
-        else {
-            roots.push(node);
-        }
-    }
-    return roots;
-}
-exports.list_to_tree = list_to_tree;
-
-
-/***/ }),
-/* 16 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.openDataApi = exports.assigneeDataApi = exports.listDataApi = exports.spaceDataApi = exports.teamDataApi = void 0;
-const axios_1 = __webpack_require__(17);
-// First step: Will Return Teams list
-const teamDataApi = (authKey) => __awaiter(void 0, void 0, void 0, function* () {
-    let teamData = yield axios_1.default.get(`https://api.clickup.com/api/v2/team`, {
-        headers: { Authorization: authKey },
-    });
-    return teamData.data.teams;
-});
-exports.teamDataApi = teamDataApi;
-// Returns list of space in each team
-const spaceDataApi = (authKey, id) => __awaiter(void 0, void 0, void 0, function* () {
-    let spaceData = yield axios_1.default.get(`https://api.clickup.com/api/v2/team/${id}/space?archived=false`, {
-        headers: {
-            Authorization: authKey,
-        },
-    });
-    return spaceData.data.spaces;
-});
-exports.spaceDataApi = spaceDataApi;
-// Return list of Lists for each space
-const listDataApi = (authKey, id) => __awaiter(void 0, void 0, void 0, function* () {
-    let listData = yield axios_1.default.get(`https://api.clickup.com/api/v2/space/${id}/list?archived=false`, {
-        headers: {
-            Authorization: authKey,
-        },
-    });
-    return listData.data.lists;
-});
-exports.listDataApi = listDataApi;
-// Returns list of members in a List
-const assigneeDataApi = (authKey, listId) => __awaiter(void 0, void 0, void 0, function* () {
-    let assigneeData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/member`, {
-        headers: {
-            Authorization: authKey,
-        },
-    });
-    return assigneeData.data.members;
-});
-exports.assigneeDataApi = assigneeDataApi;
-// Returnns Tickets list
-const openDataApi = (authKey, listId, assigneeId) => __awaiter(void 0, void 0, void 0, function* () {
-    let openData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=open&assignees[]=${assigneeId}&subtasks=true`, {
-        headers: {
-            Authorization: authKey,
-        },
-    });
-    return openData.data.tasks;
-});
-exports.openDataApi = openDataApi;
-
-
-/***/ }),
-/* 17 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-module.exports = __webpack_require__(18);
-
-/***/ }),
-/* 18 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
-var bind = __webpack_require__(20);
-var Axios = __webpack_require__(21);
-var mergeConfig = __webpack_require__(58);
-var defaults = __webpack_require__(26);
+var utils = __webpack_require__(16);
+var bind = __webpack_require__(17);
+var Axios = __webpack_require__(18);
+var mergeConfig = __webpack_require__(55);
+var defaults = __webpack_require__(23);
 
 /**
  * Create an instance of Axios
@@ -1014,18 +779,18 @@ axios.create = function create(instanceConfig) {
 };
 
 // Expose Cancel & CancelToken
-axios.Cancel = __webpack_require__(60);
-axios.CancelToken = __webpack_require__(61);
-axios.isCancel = __webpack_require__(57);
+axios.Cancel = __webpack_require__(57);
+axios.CancelToken = __webpack_require__(58);
+axios.isCancel = __webpack_require__(54);
 
 // Expose all/spread
 axios.all = function all(promises) {
   return Promise.all(promises);
 };
-axios.spread = __webpack_require__(62);
+axios.spread = __webpack_require__(59);
 
 // Expose isAxiosError
-axios.isAxiosError = __webpack_require__(63);
+axios.isAxiosError = __webpack_require__(60);
 
 module.exports = axios;
 
@@ -1034,13 +799,13 @@ module.exports.default = axios;
 
 
 /***/ }),
-/* 19 */
+/* 16 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var bind = __webpack_require__(20);
+var bind = __webpack_require__(17);
 
 // utils is a library of generic helper functions non-specific to axios
 
@@ -1390,7 +1155,7 @@ module.exports = {
 
 
 /***/ }),
-/* 20 */
+/* 17 */
 /***/ ((module) => {
 
 "use strict";
@@ -1408,18 +1173,18 @@ module.exports = function bind(fn, thisArg) {
 
 
 /***/ }),
-/* 21 */
+/* 18 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
-var buildURL = __webpack_require__(22);
-var InterceptorManager = __webpack_require__(23);
-var dispatchRequest = __webpack_require__(24);
-var mergeConfig = __webpack_require__(58);
-var validator = __webpack_require__(59);
+var utils = __webpack_require__(16);
+var buildURL = __webpack_require__(19);
+var InterceptorManager = __webpack_require__(20);
+var dispatchRequest = __webpack_require__(21);
+var mergeConfig = __webpack_require__(55);
+var validator = __webpack_require__(56);
 
 var validators = validator.validators;
 /**
@@ -1563,13 +1328,13 @@ module.exports = Axios;
 
 
 /***/ }),
-/* 22 */
+/* 19 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
+var utils = __webpack_require__(16);
 
 function encode(val) {
   return encodeURIComponent(val).
@@ -1640,13 +1405,13 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 23 */
+/* 20 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
+var utils = __webpack_require__(16);
 
 function InterceptorManager() {
   this.handlers = [];
@@ -1701,16 +1466,16 @@ module.exports = InterceptorManager;
 
 
 /***/ }),
-/* 24 */
+/* 21 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
-var transformData = __webpack_require__(25);
-var isCancel = __webpack_require__(57);
-var defaults = __webpack_require__(26);
+var utils = __webpack_require__(16);
+var transformData = __webpack_require__(22);
+var isCancel = __webpack_require__(54);
+var defaults = __webpack_require__(23);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -1790,14 +1555,14 @@ module.exports = function dispatchRequest(config) {
 
 
 /***/ }),
-/* 25 */
+/* 22 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
-var defaults = __webpack_require__(26);
+var utils = __webpack_require__(16);
+var defaults = __webpack_require__(23);
 
 /**
  * Transform the data for a request or a response
@@ -1819,15 +1584,15 @@ module.exports = function transformData(data, headers, fns) {
 
 
 /***/ }),
-/* 26 */
+/* 23 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
-var normalizeHeaderName = __webpack_require__(27);
-var enhanceError = __webpack_require__(28);
+var utils = __webpack_require__(16);
+var normalizeHeaderName = __webpack_require__(24);
+var enhanceError = __webpack_require__(25);
 
 var DEFAULT_CONTENT_TYPE = {
   'Content-Type': 'application/x-www-form-urlencoded'
@@ -1843,10 +1608,10 @@ function getDefaultAdapter() {
   var adapter;
   if (typeof XMLHttpRequest !== 'undefined') {
     // For browsers use XHR adapter
-    adapter = __webpack_require__(29);
+    adapter = __webpack_require__(26);
   } else if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
     // For node use HTTP adapter
-    adapter = __webpack_require__(38);
+    adapter = __webpack_require__(35);
   }
   return adapter;
 }
@@ -1960,13 +1725,13 @@ module.exports = defaults;
 
 
 /***/ }),
-/* 27 */
+/* 24 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
+var utils = __webpack_require__(16);
 
 module.exports = function normalizeHeaderName(headers, normalizedName) {
   utils.forEach(headers, function processHeader(value, name) {
@@ -1979,7 +1744,7 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 28 */
+/* 25 */
 /***/ ((module) => {
 
 "use strict";
@@ -2028,20 +1793,20 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 29 */
+/* 26 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
-var settle = __webpack_require__(30);
-var cookies = __webpack_require__(32);
-var buildURL = __webpack_require__(22);
-var buildFullPath = __webpack_require__(33);
-var parseHeaders = __webpack_require__(36);
-var isURLSameOrigin = __webpack_require__(37);
-var createError = __webpack_require__(31);
+var utils = __webpack_require__(16);
+var settle = __webpack_require__(27);
+var cookies = __webpack_require__(29);
+var buildURL = __webpack_require__(19);
+var buildFullPath = __webpack_require__(30);
+var parseHeaders = __webpack_require__(33);
+var isURLSameOrigin = __webpack_require__(34);
+var createError = __webpack_require__(28);
 
 module.exports = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -2224,13 +1989,13 @@ module.exports = function xhrAdapter(config) {
 
 
 /***/ }),
-/* 30 */
+/* 27 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var createError = __webpack_require__(31);
+var createError = __webpack_require__(28);
 
 /**
  * Resolve or reject a Promise based on response status.
@@ -2256,13 +2021,13 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 31 */
+/* 28 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var enhanceError = __webpack_require__(28);
+var enhanceError = __webpack_require__(25);
 
 /**
  * Create an Error with the specified message, config, error code, request and response.
@@ -2281,13 +2046,13 @@ module.exports = function createError(message, config, code, request, response) 
 
 
 /***/ }),
-/* 32 */
+/* 29 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
+var utils = __webpack_require__(16);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -2341,14 +2106,14 @@ module.exports = (
 
 
 /***/ }),
-/* 33 */
+/* 30 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var isAbsoluteURL = __webpack_require__(34);
-var combineURLs = __webpack_require__(35);
+var isAbsoluteURL = __webpack_require__(31);
+var combineURLs = __webpack_require__(32);
 
 /**
  * Creates a new URL by combining the baseURL with the requestedURL,
@@ -2368,7 +2133,7 @@ module.exports = function buildFullPath(baseURL, requestedURL) {
 
 
 /***/ }),
-/* 34 */
+/* 31 */
 /***/ ((module) => {
 
 "use strict";
@@ -2389,7 +2154,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 35 */
+/* 32 */
 /***/ ((module) => {
 
 "use strict";
@@ -2410,13 +2175,13 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 36 */
+/* 33 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
+var utils = __webpack_require__(16);
 
 // Headers whose duplicates are ignored by node
 // c.f. https://nodejs.org/api/http.html#http_message_headers
@@ -2470,13 +2235,13 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 37 */
+/* 34 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
+var utils = __webpack_require__(16);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -2545,25 +2310,25 @@ module.exports = (
 
 
 /***/ }),
-/* 38 */
+/* 35 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
-var settle = __webpack_require__(30);
-var buildFullPath = __webpack_require__(33);
-var buildURL = __webpack_require__(22);
+var utils = __webpack_require__(16);
+var settle = __webpack_require__(27);
+var buildFullPath = __webpack_require__(30);
+var buildURL = __webpack_require__(19);
 var http = __webpack_require__(6);
-var https = __webpack_require__(39);
-var httpFollow = __webpack_require__(40).http;
-var httpsFollow = __webpack_require__(40).https;
-var url = __webpack_require__(41);
-var zlib = __webpack_require__(55);
-var pkg = __webpack_require__(56);
-var createError = __webpack_require__(31);
-var enhanceError = __webpack_require__(28);
+var https = __webpack_require__(36);
+var httpFollow = __webpack_require__(37).http;
+var httpsFollow = __webpack_require__(37).https;
+var url = __webpack_require__(38);
+var zlib = __webpack_require__(52);
+var pkg = __webpack_require__(53);
+var createError = __webpack_require__(28);
+var enhanceError = __webpack_require__(25);
 
 var isHttps = /https:?/;
 
@@ -2883,23 +2648,23 @@ module.exports = function httpAdapter(config) {
 
 
 /***/ }),
-/* 39 */
+/* 36 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("https");;
 
 /***/ }),
-/* 40 */
+/* 37 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var url = __webpack_require__(41);
+var url = __webpack_require__(38);
 var URL = url.URL;
 var http = __webpack_require__(6);
-var https = __webpack_require__(39);
-var Writable = __webpack_require__(42).Writable;
-var assert = __webpack_require__(43);
-var debug = __webpack_require__(44);
+var https = __webpack_require__(36);
+var Writable = __webpack_require__(39).Writable;
+var assert = __webpack_require__(40);
+var debug = __webpack_require__(41);
 
 // Create handlers that pass events from native requests
 var events = ["abort", "aborted", "connect", "error", "socket", "timeout"];
@@ -3434,28 +3199,28 @@ module.exports.wrap = wrap;
 
 
 /***/ }),
-/* 41 */
+/* 38 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("url");;
 
 /***/ }),
-/* 42 */
+/* 39 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("stream");;
 
 /***/ }),
-/* 43 */
+/* 40 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("assert");;
 
 /***/ }),
-/* 44 */
+/* 41 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var debug;
@@ -3464,7 +3229,7 @@ module.exports = function () {
   if (!debug) {
     try {
       /* eslint global-require: off */
-      debug = __webpack_require__(45)("follow-redirects");
+      debug = __webpack_require__(42)("follow-redirects");
     }
     catch (error) { /* */ }
     if (typeof debug !== "function") {
@@ -3476,7 +3241,7 @@ module.exports = function () {
 
 
 /***/ }),
-/* 45 */
+/* 42 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /**
@@ -3485,14 +3250,14 @@ module.exports = function () {
  */
 
 if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
-	module.exports = __webpack_require__(46);
+	module.exports = __webpack_require__(43);
 } else {
-	module.exports = __webpack_require__(49);
+	module.exports = __webpack_require__(46);
 }
 
 
 /***/ }),
-/* 46 */
+/* 43 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /* eslint-env browser */
@@ -3749,7 +3514,7 @@ function localstorage() {
 	}
 }
 
-module.exports = __webpack_require__(47)(exports);
+module.exports = __webpack_require__(44)(exports);
 
 const {formatters} = module.exports;
 
@@ -3767,7 +3532,7 @@ formatters.j = function (v) {
 
 
 /***/ }),
-/* 47 */
+/* 44 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
@@ -3783,7 +3548,7 @@ function setup(env) {
 	createDebug.disable = disable;
 	createDebug.enable = enable;
 	createDebug.enabled = enabled;
-	createDebug.humanize = __webpack_require__(48);
+	createDebug.humanize = __webpack_require__(45);
 	createDebug.destroy = destroy;
 
 	Object.keys(env).forEach(key => {
@@ -4034,7 +3799,7 @@ module.exports = setup;
 
 
 /***/ }),
-/* 48 */
+/* 45 */
 /***/ ((module) => {
 
 /**
@@ -4202,15 +3967,15 @@ function plural(ms, msAbs, n, name) {
 
 
 /***/ }),
-/* 49 */
+/* 46 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /**
  * Module dependencies.
  */
 
-const tty = __webpack_require__(50);
-const util = __webpack_require__(51);
+const tty = __webpack_require__(47);
+const util = __webpack_require__(48);
 
 /**
  * This is the Node.js implementation of `debug()`.
@@ -4236,7 +4001,7 @@ exports.colors = [6, 2, 3, 4, 5, 1];
 try {
 	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
 	// eslint-disable-next-line import/no-extraneous-dependencies
-	const supportsColor = __webpack_require__(52);
+	const supportsColor = __webpack_require__(49);
 
 	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
 		exports.colors = [
@@ -4444,7 +4209,7 @@ function init(debug) {
 	}
 }
 
-module.exports = __webpack_require__(47)(exports);
+module.exports = __webpack_require__(44)(exports);
 
 const {formatters} = module.exports;
 
@@ -4471,27 +4236,27 @@ formatters.O = function (v) {
 
 
 /***/ }),
-/* 50 */
+/* 47 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("tty");;
 
 /***/ }),
-/* 51 */
+/* 48 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("util");;
 
 /***/ }),
-/* 52 */
+/* 49 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
-const os = __webpack_require__(53);
-const hasFlag = __webpack_require__(54);
+const os = __webpack_require__(50);
+const hasFlag = __webpack_require__(51);
 
 const env = process.env;
 
@@ -4623,14 +4388,14 @@ module.exports = {
 
 
 /***/ }),
-/* 53 */
+/* 50 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("os");;
 
 /***/ }),
-/* 54 */
+/* 51 */
 /***/ ((module) => {
 
 "use strict";
@@ -4645,21 +4410,21 @@ module.exports = (flag, argv) => {
 
 
 /***/ }),
-/* 55 */
+/* 52 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("zlib");;
 
 /***/ }),
-/* 56 */
+/* 53 */
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse("{\"_from\":\"axios\",\"_id\":\"axios@0.21.4\",\"_inBundle\":false,\"_integrity\":\"sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==\",\"_location\":\"/axios\",\"_phantomChildren\":{},\"_requested\":{\"type\":\"tag\",\"registry\":true,\"raw\":\"axios\",\"name\":\"axios\",\"escapedName\":\"axios\",\"rawSpec\":\"\",\"saveSpec\":null,\"fetchSpec\":\"latest\"},\"_requiredBy\":[\"#USER\",\"/\"],\"_resolved\":\"https://registry.npmjs.org/axios/-/axios-0.21.4.tgz\",\"_shasum\":\"c67b90dc0568e5c1cf2b0b858c43ba28e2eda575\",\"_spec\":\"axios\",\"_where\":\"E:\\\\VSCodeExtention\",\"author\":{\"name\":\"Matt Zabriskie\"},\"browser\":{\"./lib/adapters/http.js\":\"./lib/adapters/xhr.js\"},\"bugs\":{\"url\":\"https://github.com/axios/axios/issues\"},\"bundleDependencies\":false,\"bundlesize\":[{\"path\":\"./dist/axios.min.js\",\"threshold\":\"5kB\"}],\"dependencies\":{\"follow-redirects\":\"^1.14.0\"},\"deprecated\":false,\"description\":\"Promise based HTTP client for the browser and node.js\",\"devDependencies\":{\"coveralls\":\"^3.0.0\",\"es6-promise\":\"^4.2.4\",\"grunt\":\"^1.3.0\",\"grunt-banner\":\"^0.6.0\",\"grunt-cli\":\"^1.2.0\",\"grunt-contrib-clean\":\"^1.1.0\",\"grunt-contrib-watch\":\"^1.0.0\",\"grunt-eslint\":\"^23.0.0\",\"grunt-karma\":\"^4.0.0\",\"grunt-mocha-test\":\"^0.13.3\",\"grunt-ts\":\"^6.0.0-beta.19\",\"grunt-webpack\":\"^4.0.2\",\"istanbul-instrumenter-loader\":\"^1.0.0\",\"jasmine-core\":\"^2.4.1\",\"karma\":\"^6.3.2\",\"karma-chrome-launcher\":\"^3.1.0\",\"karma-firefox-launcher\":\"^2.1.0\",\"karma-jasmine\":\"^1.1.1\",\"karma-jasmine-ajax\":\"^0.1.13\",\"karma-safari-launcher\":\"^1.0.0\",\"karma-sauce-launcher\":\"^4.3.6\",\"karma-sinon\":\"^1.0.5\",\"karma-sourcemap-loader\":\"^0.3.8\",\"karma-webpack\":\"^4.0.2\",\"load-grunt-tasks\":\"^3.5.2\",\"minimist\":\"^1.2.0\",\"mocha\":\"^8.2.1\",\"sinon\":\"^4.5.0\",\"terser-webpack-plugin\":\"^4.2.3\",\"typescript\":\"^4.0.5\",\"url-search-params\":\"^0.10.0\",\"webpack\":\"^4.44.2\",\"webpack-dev-server\":\"^3.11.0\"},\"homepage\":\"https://axios-http.com\",\"jsdelivr\":\"dist/axios.min.js\",\"keywords\":[\"xhr\",\"http\",\"ajax\",\"promise\",\"node\"],\"license\":\"MIT\",\"main\":\"index.js\",\"name\":\"axios\",\"repository\":{\"type\":\"git\",\"url\":\"git+https://github.com/axios/axios.git\"},\"scripts\":{\"build\":\"NODE_ENV=production grunt build\",\"coveralls\":\"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js\",\"examples\":\"node ./examples/server.js\",\"fix\":\"eslint --fix lib/**/*.js\",\"postversion\":\"git push && git push --tags\",\"preversion\":\"npm test\",\"start\":\"node ./sandbox/server.js\",\"test\":\"grunt test\",\"version\":\"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json\"},\"typings\":\"./index.d.ts\",\"unpkg\":\"dist/axios.min.js\",\"version\":\"0.21.4\"}");
+module.exports = JSON.parse("{\"_from\":\"axios@^0.21.4\",\"_id\":\"axios@0.21.4\",\"_inBundle\":false,\"_integrity\":\"sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==\",\"_location\":\"/axios\",\"_phantomChildren\":{},\"_requested\":{\"type\":\"range\",\"registry\":true,\"raw\":\"axios@^0.21.4\",\"name\":\"axios\",\"escapedName\":\"axios\",\"rawSpec\":\"^0.21.4\",\"saveSpec\":null,\"fetchSpec\":\"^0.21.4\"},\"_requiredBy\":[\"#USER\",\"/\"],\"_resolved\":\"https://registry.npmjs.org/axios/-/axios-0.21.4.tgz\",\"_shasum\":\"c67b90dc0568e5c1cf2b0b858c43ba28e2eda575\",\"_spec\":\"axios@^0.21.4\",\"_where\":\"/Users/anas/Desktop/VScode/VSCodeExtention\",\"author\":{\"name\":\"Matt Zabriskie\"},\"browser\":{\"./lib/adapters/http.js\":\"./lib/adapters/xhr.js\"},\"bugs\":{\"url\":\"https://github.com/axios/axios/issues\"},\"bundleDependencies\":false,\"bundlesize\":[{\"path\":\"./dist/axios.min.js\",\"threshold\":\"5kB\"}],\"dependencies\":{\"follow-redirects\":\"^1.14.0\"},\"deprecated\":false,\"description\":\"Promise based HTTP client for the browser and node.js\",\"devDependencies\":{\"coveralls\":\"^3.0.0\",\"es6-promise\":\"^4.2.4\",\"grunt\":\"^1.3.0\",\"grunt-banner\":\"^0.6.0\",\"grunt-cli\":\"^1.2.0\",\"grunt-contrib-clean\":\"^1.1.0\",\"grunt-contrib-watch\":\"^1.0.0\",\"grunt-eslint\":\"^23.0.0\",\"grunt-karma\":\"^4.0.0\",\"grunt-mocha-test\":\"^0.13.3\",\"grunt-ts\":\"^6.0.0-beta.19\",\"grunt-webpack\":\"^4.0.2\",\"istanbul-instrumenter-loader\":\"^1.0.0\",\"jasmine-core\":\"^2.4.1\",\"karma\":\"^6.3.2\",\"karma-chrome-launcher\":\"^3.1.0\",\"karma-firefox-launcher\":\"^2.1.0\",\"karma-jasmine\":\"^1.1.1\",\"karma-jasmine-ajax\":\"^0.1.13\",\"karma-safari-launcher\":\"^1.0.0\",\"karma-sauce-launcher\":\"^4.3.6\",\"karma-sinon\":\"^1.0.5\",\"karma-sourcemap-loader\":\"^0.3.8\",\"karma-webpack\":\"^4.0.2\",\"load-grunt-tasks\":\"^3.5.2\",\"minimist\":\"^1.2.0\",\"mocha\":\"^8.2.1\",\"sinon\":\"^4.5.0\",\"terser-webpack-plugin\":\"^4.2.3\",\"typescript\":\"^4.0.5\",\"url-search-params\":\"^0.10.0\",\"webpack\":\"^4.44.2\",\"webpack-dev-server\":\"^3.11.0\"},\"homepage\":\"https://axios-http.com\",\"jsdelivr\":\"dist/axios.min.js\",\"keywords\":[\"xhr\",\"http\",\"ajax\",\"promise\",\"node\"],\"license\":\"MIT\",\"main\":\"index.js\",\"name\":\"axios\",\"repository\":{\"type\":\"git\",\"url\":\"git+https://github.com/axios/axios.git\"},\"scripts\":{\"build\":\"NODE_ENV=production grunt build\",\"coveralls\":\"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js\",\"examples\":\"node ./examples/server.js\",\"fix\":\"eslint --fix lib/**/*.js\",\"postversion\":\"git push && git push --tags\",\"preversion\":\"npm test\",\"start\":\"node ./sandbox/server.js\",\"test\":\"grunt test\",\"version\":\"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json\"},\"typings\":\"./index.d.ts\",\"unpkg\":\"dist/axios.min.js\",\"version\":\"0.21.4\"}");
 
 /***/ }),
-/* 57 */
+/* 54 */
 /***/ ((module) => {
 
 "use strict";
@@ -4671,13 +4436,13 @@ module.exports = function isCancel(value) {
 
 
 /***/ }),
-/* 58 */
+/* 55 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(19);
+var utils = __webpack_require__(16);
 
 /**
  * Config-specific merge-function which creates a new config-object
@@ -4765,13 +4530,13 @@ module.exports = function mergeConfig(config1, config2) {
 
 
 /***/ }),
-/* 59 */
+/* 56 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var pkg = __webpack_require__(56);
+var pkg = __webpack_require__(53);
 
 var validators = {};
 
@@ -4877,7 +4642,7 @@ module.exports = {
 
 
 /***/ }),
-/* 60 */
+/* 57 */
 /***/ ((module) => {
 
 "use strict";
@@ -4903,13 +4668,13 @@ module.exports = Cancel;
 
 
 /***/ }),
-/* 61 */
+/* 58 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Cancel = __webpack_require__(60);
+var Cancel = __webpack_require__(57);
 
 /**
  * A `CancelToken` is an object that can be used to request cancellation of an operation.
@@ -4967,7 +4732,7 @@ module.exports = CancelToken;
 
 
 /***/ }),
-/* 62 */
+/* 59 */
 /***/ ((module) => {
 
 "use strict";
@@ -5001,7 +4766,7 @@ module.exports = function spread(callback) {
 
 
 /***/ }),
-/* 63 */
+/* 60 */
 /***/ ((module) => {
 
 "use strict";
@@ -5019,7 +4784,157 @@ module.exports = function isAxiosError(payload) {
 
 
 /***/ }),
-/* 64 */
+/* 61 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TestView = exports.testView = void 0;
+const vscode = __webpack_require__(1);
+// import { clickUpDtata, hashmap } from './extension';
+const TokenManager_1 = __webpack_require__(12);
+const general_1 = __webpack_require__(64);
+const api_1 = __webpack_require__(66);
+let testViewClickUpData;
+let testViewhashmap = {};
+let my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7";
+const testView = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    const teamData = yield api_1.teamDataApi(my_key);
+    teamData.forEach((element) => {
+        element.parent_id = "0";
+    });
+    const spaceData = new Array();
+    const listData = new Array();
+    yield Promise.all(teamData.map((el) => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield api_1.spaceDataApi(my_key, el.id);
+        yield Promise.all(res.map((element) => __awaiter(void 0, void 0, void 0, function* () {
+            element.parent_id = el.id;
+            spaceData.push(element);
+            const resList = yield api_1.listDataApi(my_key, element.id);
+            resList.map((listItem) => {
+                listItem.parent_id = element.id;
+                listData.push(listItem);
+            });
+        })));
+    })));
+    const allArray = [...teamData, ...spaceData, ...listData];
+    testViewClickUpData = general_1.list_to_tree(allArray);
+    allArray.forEach((el) => {
+        testViewhashmap[el.id] = [];
+    });
+    Object.keys(testViewhashmap).forEach((key) => {
+        allArray.forEach((el) => {
+            if (el.parent_id === key)
+                testViewhashmap[key].push(`${el.name}-${el.id}`);
+        });
+    });
+    new TestView(context);
+});
+exports.testView = testView;
+class TestView {
+    constructor(context) {
+        this._onDidChangeTreeData = new vscode.EventEmitter();
+        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+        const view = vscode.window.createTreeView("testView", {
+            treeDataProvider: aNodeWithIdTreeDataProvider(),
+            showCollapseAll: true,
+        });
+        context.subscriptions.push(view);
+        vscode.commands.registerCommand("testView.changeTitle", (name) => {
+            TokenManager_1.TokenManager.setSelectedValue(name);
+            console.log("CHECKING MOMENTO", TokenManager_1.TokenManager.getSelectedValue());
+            view.title = name.slice(0, name.lastIndexOf("-"));
+        });
+    }
+    refresh() {
+        this._onDidChangeTreeData.fire();
+    }
+}
+exports.TestView = TestView;
+const nodes = {};
+function aNodeWithIdTreeDataProvider() {
+    return {
+        getChildren: (element) => {
+            return getChildren(element ? element.key : undefined).map((key) => getNode(key));
+        },
+        getTreeItem: (element) => {
+            const treeItem = getTreeItem(element.key);
+            // localStorage.setItem("id", element.key);
+            treeItem.id = element.key;
+            return treeItem;
+        },
+    };
+}
+function getChildren(key) {
+    console.log("getChildren-key", key);
+    let rootArray = new Array();
+    if (!key) {
+        testViewClickUpData.forEach((el) => {
+            rootArray.push(`${el.name}-${el.id}`);
+        });
+        return rootArray;
+    }
+    console.log("qwertyuio", key);
+    const id = key.slice(key.lastIndexOf("-") + 1);
+    if (testViewhashmap[id].length) {
+        return testViewhashmap[id];
+    }
+    return [];
+}
+function getTreeItem(key) {
+    const id = key.slice(key.lastIndexOf("-") + 1);
+    const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
+    if (testViewhashmap[id].length) {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf("-")) },
+            tooltip,
+            collapsibleState: testViewhashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+        };
+    }
+    else {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf("-")) },
+            tooltip,
+            collapsibleState: testViewhashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+            command: {
+                command: "testView.changeTitle",
+                title: "",
+                arguments: [key],
+            },
+        };
+    }
+}
+function getNode(key) {
+    if (!nodes[key]) {
+        nodes[key] = new Key(key);
+    }
+    console.log("getNode-return-key", key);
+    return nodes[key];
+}
+class Key {
+    constructor(key, command) {
+        this.key = key;
+        this.command = command;
+    }
+}
+
+
+/***/ }),
+/* 62 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -5038,10 +4953,10 @@ exports.AssigneeView = exports.assigneeView = void 0;
 const vscode = __webpack_require__(1);
 // import { clickUpDtata, hashmap } from './extension';
 const TokenManager_1 = __webpack_require__(12);
-const path = __webpack_require__(65);
-const general_1 = __webpack_require__(15);
-const general_2 = __webpack_require__(15);
-const api_1 = __webpack_require__(16);
+const path = __webpack_require__(63);
+const general_1 = __webpack_require__(64);
+const general_2 = __webpack_require__(64);
+const api_1 = __webpack_require__(66);
 let clickUpData;
 let hashmap = {};
 let my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7";
@@ -5083,6 +4998,8 @@ class AssigneeView {
             TokenManager_1.TokenManager.setAssigneeValue(name);
             console.log("CHECKING MOMENTO", TokenManager_1.TokenManager.getAssigneeValue());
             vscode.commands.executeCommand("vstodo.refreshOpenView");
+            vscode.commands.executeCommand("vstodo.refreshIpView");
+            vscode.commands.executeCommand("vstodo.refreshBaView");
             view.title = "Assignee: " + general_1.getLabelFromKey(name);
         });
     }
@@ -5168,14 +5085,53 @@ class Key {
 
 
 /***/ }),
-/* 65 */
+/* 63 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("path");;
 
 /***/ }),
-/* 66 */
+/* 64 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.list_to_tree = exports.getLabelFromKey = exports.getIdFromKey = void 0;
+const getIdFromKey = (key) => {
+    return key.slice(key.lastIndexOf('-') + 1);
+};
+exports.getIdFromKey = getIdFromKey;
+const getLabelFromKey = (key) => {
+    return key.slice(0, key.lastIndexOf('-'));
+};
+exports.getLabelFromKey = getLabelFromKey;
+function list_to_tree(list) {
+    var map = {}, node, roots = [], i;
+    for (i = 0; i < list.length; i += 1) {
+        map[list[i].id] = i; // initialize the map
+        list[i].children = []; // initialize the children
+        //   console.log(map)
+    }
+    console.log(map);
+    for (i = 0; i < list.length; i += 1) {
+        node = list[i];
+        if (node.parent_id !== "0") {
+            // if you have dangling branches check that map[node.parentId] exists
+            list[map[node.parent_id]].children.push(node);
+        }
+        else {
+            roots.push(node);
+        }
+    }
+    return roots;
+}
+exports.list_to_tree = list_to_tree;
+
+
+/***/ }),
+/* 65 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -5193,9 +5149,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OpenView = exports.openView = void 0;
 const vscode = __webpack_require__(1);
 const TokenManager_1 = __webpack_require__(12);
-const path = __webpack_require__(65);
-const general_1 = __webpack_require__(15);
-const api_1 = __webpack_require__(16);
+const path = __webpack_require__(63);
+const general_1 = __webpack_require__(64);
+const api_1 = __webpack_require__(66);
 let clickUpData;
 let hashmap = {};
 const openView = (context) => __awaiter(void 0, void 0, void 0, function* () {
@@ -5205,11 +5161,9 @@ const openView = (context) => __awaiter(void 0, void 0, void 0, function* () {
     const assigneeId = general_1.getIdFromKey(assigneeValue);
     let my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7";
     const openData = yield api_1.openDataApi(my_key, listId, assigneeId);
-    console.log("oooooooo", openData);
     openData.forEach((element) => {
         element.parent_id = "0";
     });
-    console.log("XOLO", openData);
     const allArray = openData;
     clickUpData = general_1.list_to_tree(allArray);
     allArray.forEach((el) => {
@@ -5229,7 +5183,6 @@ class OpenView {
     constructor(context) {
         this._onDidChangeTreeData = new vscode.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-        console.log("aayush", hashmap, clickUpData);
         const view = vscode.window.createTreeView("openView", {
             treeDataProvider: aNodeWithIdTreeDataProvider(),
             showCollapseAll: true,
@@ -5262,7 +5215,6 @@ function aNodeWithIdTreeDataProvider() {
     };
 }
 function getChildren(key) {
-    console.log("getChildren-key", key);
     let rootArray = new Array();
     if (!key) {
         clickUpData.forEach((el) => {
@@ -5270,7 +5222,6 @@ function getChildren(key) {
         });
         return rootArray;
     }
-    console.log("qwertyuio", key);
     const id = key.slice(key.lastIndexOf("-") + 1);
     if (hashmap[id].length) {
         return hashmap[id];
@@ -5312,7 +5263,380 @@ function getNode(key) {
     if (!nodes[key]) {
         nodes[key] = new Key(key);
     }
-    console.log("getNode-return-key", key);
+    return nodes[key];
+}
+class Key {
+    constructor(key, command) {
+        this.key = key;
+        this.command = command;
+    }
+}
+
+
+/***/ }),
+/* 66 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildAvailableDataApi = exports.inProgressDataApi = exports.openDataApi = exports.assigneeDataApi = exports.listDataApi = exports.spaceDataApi = exports.teamDataApi = void 0;
+const axios_1 = __webpack_require__(14);
+// First step: Will Return Teams list
+const teamDataApi = (authKey) => __awaiter(void 0, void 0, void 0, function* () {
+    let teamData = yield axios_1.default.get(`https://api.clickup.com/api/v2/team`, {
+        headers: { Authorization: authKey },
+    });
+    return teamData.data.teams;
+});
+exports.teamDataApi = teamDataApi;
+// Returns list of space in each team
+const spaceDataApi = (authKey, id) => __awaiter(void 0, void 0, void 0, function* () {
+    let spaceData = yield axios_1.default.get(`https://api.clickup.com/api/v2/team/${id}/space?archived=false`, {
+        headers: {
+            Authorization: authKey,
+        },
+    });
+    return spaceData.data.spaces;
+});
+exports.spaceDataApi = spaceDataApi;
+// Return list of Lists for each space
+const listDataApi = (authKey, id) => __awaiter(void 0, void 0, void 0, function* () {
+    let listData = yield axios_1.default.get(`https://api.clickup.com/api/v2/space/${id}/list?archived=false`, {
+        headers: {
+            Authorization: authKey,
+        },
+    });
+    return listData.data.lists;
+});
+exports.listDataApi = listDataApi;
+// Returns list of members in a List
+const assigneeDataApi = (authKey, listId) => __awaiter(void 0, void 0, void 0, function* () {
+    let assigneeData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/member`, {
+        headers: {
+            Authorization: authKey,
+        },
+    });
+    return assigneeData.data.members;
+});
+exports.assigneeDataApi = assigneeDataApi;
+// Returnns Tickets list
+const openDataApi = (authKey, listId, assigneeId) => __awaiter(void 0, void 0, void 0, function* () {
+    let openData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=open&assignees[]=${assigneeId}&subtasks=true`, {
+        headers: {
+            Authorization: authKey,
+        },
+    });
+    return openData.data.tasks;
+});
+exports.openDataApi = openDataApi;
+const inProgressDataApi = (authKey, listId, assigneeId) => __awaiter(void 0, void 0, void 0, function* () {
+    const status = 'in progress';
+    let openData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=${status}&assignees[]=${assigneeId}&subtasks=true`, {
+        headers: {
+            Authorization: authKey,
+        },
+    });
+    return openData.data.tasks;
+});
+exports.inProgressDataApi = inProgressDataApi;
+const buildAvailableDataApi = (authKey, listId, assigneeId) => __awaiter(void 0, void 0, void 0, function* () {
+    const status = 'build avialable ';
+    let openData = yield axios_1.default.get(`https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=${status}&assignees[]=${assigneeId}&subtasks=true`, {
+        headers: {
+            Authorization: authKey,
+        },
+    });
+    return openData.data.tasks;
+});
+exports.buildAvailableDataApi = buildAvailableDataApi;
+
+
+/***/ }),
+/* 67 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.inProgressView = exports.ipView = void 0;
+const vscode = __webpack_require__(1);
+const TokenManager_1 = __webpack_require__(12);
+const path = __webpack_require__(63);
+const general_1 = __webpack_require__(64);
+const api_1 = __webpack_require__(66);
+let clickUpData;
+let hashmap = {};
+const ipView = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    const listValue = TokenManager_1.TokenManager.getSelectedValue();
+    const listId = general_1.getIdFromKey(listValue);
+    const assigneeValue = TokenManager_1.TokenManager.getAssigneeValue();
+    const assigneeId = general_1.getIdFromKey(assigneeValue);
+    let my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7";
+    const ipData = yield api_1.inProgressDataApi(my_key, listId, assigneeId);
+    ipData.forEach((element) => {
+        element.parent_id = "0";
+    });
+    const allArray = ipData;
+    clickUpData = general_1.list_to_tree(allArray);
+    allArray.forEach((el) => {
+        hashmap[el.id] = [];
+    });
+    Object.keys(hashmap).forEach((key) => {
+        allArray.forEach((el) => {
+            if (el.parent_id === key)
+                hashmap[key].push(`${el.name}-${el.id}`);
+        });
+    });
+    const ov = new inProgressView(context);
+    ov.refresh();
+});
+exports.ipView = ipView;
+class inProgressView {
+    constructor(context) {
+        this._onDidChangeTreeData = new vscode.EventEmitter();
+        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+        const view = vscode.window.createTreeView("ipView", {
+            treeDataProvider: aNodeWithIdTreeDataProvider(),
+            showCollapseAll: true,
+        });
+        context.subscriptions.push(view);
+        // vscode.commands.registerCommand('openView.changeTitle',  (name) => {
+        // 		TokenManager.setAssigneeValue(name);
+        // 		console.log("CHECKING MOMENTO",TokenManager.getAssigneeValue())
+        // 		view.title = "Assignee: " + name;
+        // 	}
+        // );
+    }
+    refresh() {
+        this._onDidChangeTreeData.fire();
+    }
+}
+exports.inProgressView = inProgressView;
+const nodes = {};
+function aNodeWithIdTreeDataProvider() {
+    return {
+        getChildren: (element) => {
+            return getChildren(element ? element.key : undefined).map((key) => getNode(key));
+        },
+        getTreeItem: (element) => {
+            const treeItem = getTreeItem(element.key);
+            // localStorage.setItem("id", element.key);
+            treeItem.id = element.key;
+            return treeItem;
+        },
+    };
+}
+function getChildren(key) {
+    let rootArray = new Array();
+    if (!key) {
+        clickUpData.forEach((el) => {
+            rootArray.push(`${el.name}-${el.id}`);
+        });
+        return rootArray;
+    }
+    const id = key.slice(key.lastIndexOf("-") + 1);
+    if (hashmap[id].length) {
+        return hashmap[id];
+    }
+    return [];
+}
+function getTreeItem(key) {
+    const id = key.slice(key.lastIndexOf("-") + 1);
+    const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
+    if (hashmap[id].length) {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf("-")) },
+            tooltip,
+            collapsibleState: hashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+        };
+    }
+    else {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf("-")) },
+            tooltip,
+            collapsibleState: hashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+            // command: {
+            // 	command: 'assigneeView.changeTitle',
+            // 	title: '',
+            // 	arguments: [key.slice(0, key.lastIndexOf('-'))]
+            // }
+            iconPath: {
+                light: path.join(__filename, "..", "..", "resources", "light", "dependency.svg"),
+                dark: path.join(__filename, "..", "..", "resources", "dark", "dependency.svg"),
+            },
+        };
+    }
+}
+function getNode(key) {
+    if (!nodes[key]) {
+        nodes[key] = new Key(key);
+    }
+    return nodes[key];
+}
+class Key {
+    constructor(key, command) {
+        this.key = key;
+        this.command = command;
+    }
+}
+
+
+/***/ }),
+/* 68 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildAvailableView = exports.baView = void 0;
+const vscode = __webpack_require__(1);
+const TokenManager_1 = __webpack_require__(12);
+const path = __webpack_require__(63);
+const general_1 = __webpack_require__(64);
+const api_1 = __webpack_require__(66);
+let clickUpData;
+let hashmap = {};
+const baView = (context) => __awaiter(void 0, void 0, void 0, function* () {
+    const listValue = TokenManager_1.TokenManager.getSelectedValue();
+    const listId = general_1.getIdFromKey(listValue);
+    const assigneeValue = TokenManager_1.TokenManager.getAssigneeValue();
+    const assigneeId = general_1.getIdFromKey(assigneeValue);
+    let my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7";
+    const baData = yield api_1.buildAvailableDataApi(my_key, listId, assigneeId);
+    baData.forEach((element) => {
+        element.parent_id = "0";
+    });
+    const allArray = baData;
+    clickUpData = general_1.list_to_tree(allArray);
+    allArray.forEach((el) => {
+        hashmap[el.id] = [];
+    });
+    Object.keys(hashmap).forEach((key) => {
+        allArray.forEach((el) => {
+            if (el.parent_id === key)
+                hashmap[key].push(`${el.name}-${el.id}`);
+        });
+    });
+    const ov = new buildAvailableView(context);
+    ov.refresh();
+});
+exports.baView = baView;
+class buildAvailableView {
+    constructor(context) {
+        this._onDidChangeTreeData = new vscode.EventEmitter();
+        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+        const view = vscode.window.createTreeView("baView", {
+            treeDataProvider: aNodeWithIdTreeDataProvider(),
+            showCollapseAll: true,
+        });
+        context.subscriptions.push(view);
+        // vscode.commands.registerCommand('openView.changeTitle',  (name) => {
+        // 		TokenManager.setAssigneeValue(name);
+        // 		console.log("CHECKING MOMENTO",TokenManager.getAssigneeValue())
+        // 		view.title = "Assignee: " + name;
+        // 	}
+        // );
+    }
+    refresh() {
+        this._onDidChangeTreeData.fire();
+    }
+}
+exports.buildAvailableView = buildAvailableView;
+const nodes = {};
+function aNodeWithIdTreeDataProvider() {
+    return {
+        getChildren: (element) => {
+            return getChildren(element ? element.key : undefined).map((key) => getNode(key));
+        },
+        getTreeItem: (element) => {
+            const treeItem = getTreeItem(element.key);
+            // localStorage.setItem("id", element.key);
+            treeItem.id = element.key;
+            return treeItem;
+        },
+    };
+}
+function getChildren(key) {
+    let rootArray = new Array();
+    if (!key) {
+        clickUpData.forEach((el) => {
+            rootArray.push(`${el.name}-${el.id}`);
+        });
+        return rootArray;
+    }
+    const id = key.slice(key.lastIndexOf("-") + 1);
+    if (hashmap[id].length) {
+        return hashmap[id];
+    }
+    return [];
+}
+function getTreeItem(key) {
+    const id = key.slice(key.lastIndexOf("-") + 1);
+    const tooltip = new vscode.MarkdownString(`$(zap) Tooltip for ${key}`, true);
+    if (hashmap[id].length) {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf("-")) },
+            tooltip,
+            collapsibleState: hashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+        };
+    }
+    else {
+        return {
+            label: { label: key.slice(0, key.lastIndexOf("-")) },
+            tooltip,
+            collapsibleState: hashmap[id].length
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.None,
+            // command: {
+            // 	command: 'assigneeView.changeTitle',
+            // 	title: '',
+            // 	arguments: [key.slice(0, key.lastIndexOf('-'))]
+            // }
+            iconPath: {
+                light: path.join(__filename, "..", "..", "resources", "light", "dependency.svg"),
+                dark: path.join(__filename, "..", "..", "resources", "dark", "dependency.svg"),
+            },
+        };
+    }
+}
+function getNode(key) {
+    if (!nodes[key]) {
+        nodes[key] = new Key(key);
+    }
     return nodes[key];
 }
 class Key {

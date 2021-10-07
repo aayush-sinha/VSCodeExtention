@@ -51,6 +51,8 @@ export class AssigneeView {
       TokenManager.setAssigneeValue(name);
       console.log("CHECKING MOMENTO", TokenManager.getAssigneeValue());
       vscode.commands.executeCommand("vstodo.refreshOpenView");
+      vscode.commands.executeCommand("vstodo.refreshIpView");
+      vscode.commands.executeCommand("vstodo.refreshBaView");
       view.title = "Assignee: " + getLabelFromKey(name);
     });
   }

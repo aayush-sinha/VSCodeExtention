@@ -5,6 +5,8 @@ import { TokenManager } from "./TokenManager";
 import { testView } from "./testView";
 import { assigneeView } from "./assigneeView";
 import { openView } from "./openView";
+import { ipView} from "./inProgressView";
+import { baView} from "./buildAvailableView";
 
 export async function activate(context: vscode.ExtensionContext) {
   TokenManager.globalState = context.globalState;
@@ -103,6 +105,24 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  vscode.commands.registerCommand("vstodo.refreshIpView", async () => {
+    try {
+      await ipView(context);
+      console.log("tr");
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  vscode.commands.registerCommand("vstodo.refreshBaView", async () => {
+    try {
+      await baView(context);
+      console.log("tr");
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
   context.subscriptions.push(
     vscode.commands.registerCommand("vstodo.refresh", async () => {
       // HelloWorldPanel.kill();
@@ -137,6 +157,8 @@ export async function activate(context: vscode.ExtensionContext) {
   await testView(context);
   await assigneeView(context);
   await openView(context);
+  await ipView(context);
+  await baView(context);
 }
 
 export function deactivate() {}

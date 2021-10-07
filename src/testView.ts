@@ -19,7 +19,6 @@ export const testView = async (context) => {
   await Promise.all(
     teamData.map(async (el) => {
       const res = await spaceDataApi(my_key, el.id);
-
       await Promise.all(
         res.map(async (element) => {
           element.parent_id = el.id;

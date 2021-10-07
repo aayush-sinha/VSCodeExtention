@@ -3,23 +3,23 @@ import { TokenManager } from "./TokenManager";
 import * as path from "path";
 import { getLabelFromKey } from "./utils/general";
 import { getIdFromKey, list_to_tree } from "./utils/general";
-import { openDataApi } from "./utils/api";
+import { inProgressDataApi } from "./utils/api";
 
 let clickUpData;
 let hashmap = {};
 
-export const openView = async (context) => {
+export const ipView = async (context) => {
   const listValue = TokenManager.getSelectedValue();
   const listId = getIdFromKey(listValue);
   const assigneeValue = TokenManager.getAssigneeValue();
   const assigneeId = getIdFromKey(assigneeValue);
   let my_key = "pk_3344635_OKQECX1X18DADHGYTS13GY1UI8C8SCH7";
 
-  const openData = await openDataApi(my_key, listId, assigneeId);
-  openData.forEach((element) => {
+  const ipData = await inProgressDataApi(my_key, listId, assigneeId);
+  ipData.forEach((element) => {
     element.parent_id = "0";
   });
-  const allArray = openData;
+  const allArray = ipData;
   clickUpData = list_to_tree(allArray);
 
   allArray.forEach((el) => {
@@ -31,16 +31,16 @@ export const openView = async (context) => {
     });
   });
 
-  const ov = new OpenView(context);
+  const ov = new inProgressView(context);
   ov.refresh();
 };
-export class OpenView {
+export class inProgressView {
   private _onDidChangeTreeData: vscode.EventEmitter<Key | undefined | void> =
     new vscode.EventEmitter<Key | undefined | void>();
   readonly onDidChangeTreeData: vscode.Event<Key | undefined | void> =
     this._onDidChangeTreeData.event;
   constructor(context: vscode.ExtensionContext) {
-    const view = vscode.window.createTreeView("openView", {
+    const view = vscode.window.createTreeView("ipView", {
       treeDataProvider: aNodeWithIdTreeDataProvider(),
       showCollapseAll: true,
     });

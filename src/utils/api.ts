@@ -59,3 +59,29 @@ export const openDataApi = async (authKey, listId, assigneeId) => {
     );
     return openData.data.tasks;
   };
+
+export const inProgressDataApi = async (authKey, listId, assigneeId) => {
+  const status = 'in progress';
+    let openData = await axios.get( 
+      `https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=${status}&assignees[]=${assigneeId}&subtasks=true`,
+      {
+        headers: {
+          Authorization: authKey,
+        },
+      }
+    );
+    return openData.data.tasks;
+  };
+
+export const buildAvailableDataApi = async (authKey, listId, assigneeId) => {
+  const status = 'build avialable ';
+    let openData = await axios.get( 
+      `https://api.clickup.com/api/v2/list/${listId}/task?&statuses[]=${status}&assignees[]=${assigneeId}&subtasks=true`,
+      {
+        headers: {
+          Authorization: authKey,
+        },
+      }
+    );
+    return openData.data.tasks;
+  };
